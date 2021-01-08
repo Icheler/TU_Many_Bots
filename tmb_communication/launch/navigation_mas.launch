@@ -1,0 +1,25 @@
+<launch>
+    <arg name="robot_env" default="$(optenv ROBOT_ENV sim_simple)"/>
+    <param name="/use_sim_time" value="true"/>
+
+    <arg name="map_file" value="$(find rto_navigation)/maps/$(arg robot_env).yaml" />
+
+    <!-- Run the map server -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+        <param name="frame_id" value="/map" />
+    </node>
+    
+    <group ns="robot1">
+        <param name="tf_prefix" value="robot1_tf" />
+        <param name="amcl/initial_pose_x" value="0" />
+        <param name="amcl/initial_pose_y" value="0" />
+        <include file="$(find tmb_communication)/launch/move_base.launch" />
+    </group>
+
+    <group ns="robot2">
+        <param name="tf_prefix" value="robot2_tf" />
+        <param name="amcl/initial_pose_x" value="1" />
+        <param name="amcl/initial_pose_y" value="0" />
+        <include file="$(find tmb_communication)/launch/move_base.launch" />
+    </group>
+</launch>
