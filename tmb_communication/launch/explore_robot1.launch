@@ -1,9 +1,9 @@
 <launch>
     <group ns="robot1">
         <node pkg="explore_lite" type="explore" name="tmb_r1_explorer">
-            <param name="robot_base_frame" value="/base_link"/>
-            <param name="costmap_topic" value="/robot1_tf/map"/>
-            <param name="costmap_updates_topic" value="/robot1/map_updates"/>
+            <param name="robot_base_frame" value="robot1/base_link"/>
+            <param name="costmap_topic" value="robot1/map"/>
+            <param name="costmap_updates_topic" value="robot1/map_updates"/>
             <param name="visualize" value="true"/>
             <param name="planner_frequency" value="0.33"/>
             <param name="progress_timeout" value="30.0"/>
