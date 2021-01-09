@@ -1,0 +1,54 @@
+<launch>
+  <arg name="model" default="$(optenv ROBOT rto-1)" doc="Robot type [rto-1]"/>
+  <arg name="robot_env" default="$(optenv ROBOT_ENV simple_world)" doc="Simulation world [simple_world, hallway_loop]"/>
+   
+  <arg name="first_rto"  default="rto_0"/>
+  <arg name="second_rto" default="rto_1"/>
+  
+  <arg name="first_rto_x_pos" default="0.0"/>
+  <arg name="first_rto_y_pos" default="1.0"/>
+  <arg name="first_rto_z_pos" default=" 0.0"/>
+  <arg name="first_rto_yaw"   default=" 0.0"/>  
+  
+  <arg name="second_rto_x_pos" default=" 1.0"/>
+  <arg name="second_rto_y_pos" default="0.0"/>
+  <arg name="second_rto_z_pos" default=" 0.0"/>
+  <arg name="second_rto_yaw"   default=" 0.0"/>  
+    
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rto_worlds)/worlds/$(arg robot_env).world"/> 
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+  
+  <group ns = "$(arg first_rto)">
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rto_description)/urdf/$(arg model).urdf.xacro" />
+    
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="20.0" />
+      <param name="tf_prefix" value="$(arg first_rto)" />
+    </node>
+    
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg first_rto) -x $(arg first_rto_x_pos) -y $(arg first_rto_y_pos) -z $(arg first_rto_z_pos) -Y $(arg first_rto_yaw) -param robot_description" />
+  </group>
+  
+  <group ns = "$(arg second_rto)">
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rto_description)/urdf/$(arg model).urdf.xacro" />
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+      <param name="publish_frequency" type="double" value="20.0" />
+      <param name="tf_prefix" value="$(arg second_rto)" />
+    </node>
+
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg second_rto) -x $(arg second_rto_x_pos) -y $(arg second_rto_y_pos) -z $(arg second_rto_z_pos) -Y $(arg second_rto_yaw) -param robot_description" />
+  </group>
+  
+</launch>
+  
+    
+  
+
+    
