@@ -20,5 +20,5 @@
 
 
     <node pkg="tf" type="static_transform_publisher" name="world_to_robot1_tf_broadcaster"  args="0 0 0 0 0 0 /map /robot1/map 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="world_to_robot2_tf_broadcaster" args="1 0 0 0 0 0 /map /robot2/map 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="world_to_robot2_tf_broadcaster" args="0 0 0 0 0 0 /map /robot2/map 100"/>
 </launch>
