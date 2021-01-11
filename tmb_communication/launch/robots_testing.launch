@@ -39,6 +39,9 @@
             <param name="ymax" value="20" />
             <param name="angularUpdate" value="0.05"/>
             <param name="linearUpdate" value="0.05"/>
+            <param name="maxUrange" value="5.0"/>
+            <param name="maxRange" value="5.7"/>
+            
         </node>
     </group>
     <group ns="robot2">
@@ -61,6 +64,8 @@
             <param name="ymax" value="20" />
             <param name="angularUpdate" value="0.05"/>
             <param name="linearUpdate" value="0.05"/>
+            <param name="maxUrange" value="5.0"/>
+            <param name="maxRange" value="5.7"/>
         </node>
     </group>
 </launch>
