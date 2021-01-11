@@ -3,7 +3,7 @@
 The most important commands to get the simulation to start:
 ```
 roslaunch tmb_communication robots_testing.launch
-roslaunch tmb_communication multi_merge.launch
+roslaunch tmb_communication multi_map_merge.launch
 roslaunch tmb_communication move_base.launch
 roslaunch tmb_communication explore_robots.launch
 ```
@@ -13,6 +13,6 @@ rosrun rviz rviz -d `rospack find tmb_communication`/config/rviz_basic_setup.rvi
 ```
 
 Bugs or not wanted behavior:
-Robots dont follow computed paths
-Robots get lost easily and start recovery behavior
-Robots run into perceived obstacles
+* Robots dont follow computed paths
+* Robots get lost easily and start recovery behavior
+* Robots run into perceived obstacles
