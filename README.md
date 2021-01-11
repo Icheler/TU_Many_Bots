@@ -11,3 +11,8 @@ For a better overview of what the robots have perceived and are planning to do l
 ```
 rosrun rviz rviz -d `rospack find tmb_communication`/config/rviz_basic_setup.rviz
 ```
+
+Bugs or not wanted behavior:
+Robots dont follow computed paths
+Robots get lost easily and start recovery behavior
+Robots run into perceived obstacles
