@@ -2,7 +2,7 @@
 
 The most important commands to get the simulation to start:
 ```
-roslaunch tmb_communication robots_testing.launch
+roslaunch tmb_communication robots_start.launch
 roslaunch tmb_communication multi_map_merge.launch
 roslaunch tmb_communication move_base.launch
 roslaunch tmb_communication explore_robots.launch

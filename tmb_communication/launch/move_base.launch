@@ -3,11 +3,11 @@
 
         <!-- Run move_base -->
         <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-            <rosparam file="$(find tmb_communication)/config/robot1/costmap_common_params.yaml" command="load" ns="global_costmap" />
-            <rosparam file="$(find tmb_communication)/config/robot1/costmap_common_params.yaml" command="load" ns="local_costmap" />
-            <rosparam file="$(find tmb_communication)/config/robot1/local_costmap_params.yaml" command="load" />
-            <rosparam file="$(find tmb_communication)/config/robot1/global_costmap_params.yaml" command="load" />
-            <rosparam file="$(find tmb_communication)/config/robot1/base_local_planner_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find tmb_communication)/config/costmap_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/robot1/costmap_robot_params.yaml" command="load" />
             <!-- TODO: Probably exchange base local planner -->
             <param name="base_local_planner" value="rto_local_planner/RTOLocalPlanner" />
             <param name="controller_frequency" value="15.0" />
@@ -19,11 +19,11 @@
 
         <!-- Run move_base -->
         <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-            <rosparam file="$(find tmb_communication)/config/robot2/costmap_common_params.yaml" command="load" ns="global_costmap" />
-            <rosparam file="$(find tmb_communication)/config/robot2/costmap_common_params.yaml" command="load" ns="local_costmap" />
-            <rosparam file="$(find tmb_communication)/config/robot2/local_costmap_params.yaml" command="load" />
-            <rosparam file="$(find tmb_communication)/config/robot2/global_costmap_params.yaml" command="load" />
-            <rosparam file="$(find tmb_communication)/config/robot2/base_local_planner_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find tmb_communication)/config/costmap_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/robot2/costmap_robot_params.yaml" command="load" />
             <!-- TODO: Probably exchange base local planner -->
             <param name="base_local_planner" value="rto_local_planner/RTOLocalPlanner" />
             <param name="controller_frequency" value="15.0" />
