@@ -6,13 +6,12 @@
             <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
             <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
             <rosparam file="$(find tmb_communication)/config/costmap_params.yaml" command="load" />
-            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/base_local_planner_params_rto.yaml" command="load" />
             <rosparam file="$(find tmb_communication)/config/robot1/costmap_robot_params.yaml" command="load" />
             <!-- TODO: Probably exchange base local planner -->
             <param name="base_local_planner" value="rto_local_planner/RTOLocalPlanner" />
             <param name="controller_frequency" value="15.0" />
 
-            <remap from="map" to="/map" />
         </node>
     </group>
     <group ns="robot2">
@@ -22,13 +21,12 @@
             <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
             <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
             <rosparam file="$(find tmb_communication)/config/costmap_params.yaml" command="load" />
-            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/base_local_planner_params_rto.yaml" command="load" />
             <rosparam file="$(find tmb_communication)/config/robot2/costmap_robot_params.yaml" command="load" />
             <!-- TODO: Probably exchange base local planner -->
             <param name="base_local_planner" value="rto_local_planner/RTOLocalPlanner" />
             <param name="controller_frequency" value="15.0" />
 
-            <remap from="map" to="/map" />
         </node>
     </group>
 </launch>

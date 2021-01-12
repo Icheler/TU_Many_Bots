@@ -9,4 +9,3 @@ RTOLocalPlanner:
   
   heading_lookahead: 0.3
   num_window_points: 10
-  
