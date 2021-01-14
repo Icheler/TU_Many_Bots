@@ -207,6 +207,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-catkin_install_python(PROGRAMS src/tf_lis.py
+catkin_install_python(PROGRAMS src/position_listener
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -11,13 +11,13 @@ if __name__ == '__main__':
     rospy.init_node('turtle_tf_listener')
     position = Point()
     listener = tf.TransformListener()
-
+    name = rospy.get_param('~name')
     pub = rospy.Publisher('position', Point, queue_size=10)
 
     rate = rospy.Rate(10.0)
     while not rospy.is_shutdown():
         try:
-            (trans,rot) = listener.lookupTransform('robot1/map', 'robot1/base_link', rospy.Time(0))
+            (trans,rot) = listener.lookupTransform('map', f'{name}/base_link', rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue
 
@@ -26,5 +26,4 @@ if __name__ == '__main__':
         position.z = trans[2]
 
         pub.publish(position)
-
         rate.sleep()
