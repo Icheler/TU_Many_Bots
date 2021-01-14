@@ -34,6 +34,7 @@
             <rosparam file="$(find tmb_communication)/config/gmapping_config.yaml"/>
             
         </node>
+        <node pkg="tmb_communication" type="tf_lis.py" name="listentf" output="screen" />
     </group>
     <group ns="robot2">
         <param name="tf_prefix" value="robot2"/>
@@ -55,5 +56,6 @@
             <param name="map_frame" value="/robot2/map"/>
             <rosparam file="$(find tmb_communication)/config/gmapping_config.yaml"/>
         </node>
+        <node pkg="tmb_communication" type="tf_lis.py" name="listentf" output="screen" />
     </group>
 </launch>
