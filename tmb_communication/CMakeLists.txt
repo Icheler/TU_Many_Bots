@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   visualization_msgs
+  multirobot_map_merge
+  explore_lite
+  robot_state_publisher
 )
 
 ## System dependencies are found with CMake's conventions
