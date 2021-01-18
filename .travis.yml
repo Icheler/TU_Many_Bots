@@ -1,0 +1,17 @@
+sudo: required
+
+language: cpp
+
+services:
+  - docker
+
+env:
+  global:
+    - toolset_branch: master
+    - server_type: travis
+    - ros_release_name: noetic
+    - ubuntu_version_name: focal
+    - used_modules: check_cache,check_build,code_style_check,check_install,code_coverage
+
+script:
+  bash install_script.bash
