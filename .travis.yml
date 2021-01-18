@@ -2,6 +2,10 @@ sudo: required
 
 language: cpp
 
+matrix:
+  include:
+    - dist: focal
+
 services:
   - docker
 
