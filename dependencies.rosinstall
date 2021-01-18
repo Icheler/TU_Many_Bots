@@ -14,7 +14,3 @@
     local-name: m-explore
     uri: https://github.com/hrnr/m-explore.git
     version: kinetic-devel
-- git:
-    local-name: tu_many_bots
-    uri: https://github.com/Icheler/TU_Many_Bots.git
-    version: kinetic-devel
