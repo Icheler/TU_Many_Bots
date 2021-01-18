@@ -12,7 +12,8 @@ wget -qO - http://packages.openrobotino.org/keyFile | sudo apt-key add -
 sudo sh -c "echo \"deb http://packages2.openrobotino.org focal main\" > /etc/apt/sources.list.d/openrobotino.list"
 sudo apt update -qq
 sudo apt install -y dpkg rec-rpc robotino-dev robotino-api2 
-sudo apt install -y git python3-pip python3-catkin-pkg python3-rosdep python-rosdep ros-$ROS_DISTRO-ros-base
+sudo apt install -y git python3-pip python3-catkin-pkg ros-$ROS_DISTRO-ros-base
+sudo apt-get install -y python3-rosdep
 
 # Install catkin tools using either one of these methods (only one works ususally, try it out in the worst case)
 sudo apt install -y python3-catkin-tools
