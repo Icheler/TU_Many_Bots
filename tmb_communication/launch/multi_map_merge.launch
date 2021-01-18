@@ -13,7 +13,7 @@
         <param name="init_pose_yaw" value="0.0"/>
     </group>
 
-    <node pkg="multirobot_map_merge" type="map_merge" name="tmb_merger">
+    <node pkg="multirobot_map_merge" type="map_merge" name="tmb_merger" respawn="True">
         <param name="known_init_poses" value="True"/>
         <param name="world_frame" value="map"/>
     </node>
