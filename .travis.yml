@@ -2,9 +2,8 @@ sudo: required
 
 language: cpp
 
-matrix:
-  include:
-    - dist: focal
+os: linux
+dist: focal
 
 services:
   - docker
