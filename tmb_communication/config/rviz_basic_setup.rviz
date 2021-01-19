@@ -3,11 +3,7 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Global Options1
-        - /Status1
-        - /Marker1
-        - /Map2
+      Expanded: ~
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz/Selection
@@ -28,7 +24,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -236,6 +232,14 @@ Visualization Manager:
         frontiers: true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /robot2/tmb_explorer/frontiers
+      Name: MarkerArray
+      Namespaces:
+        frontiers: true
+      Queue Size: 100
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -284,14 +288,6 @@ Visualization Manager:
       Topic: /robot2/move_base/NavfnROS/plan
       Unreliable: false
       Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /robot1/move_base/RTOLocalPlanner/marker
-      Name: Marker
-      Namespaces:
-        waypoints: true
-      Queue Size: 100
-      Value: true
     - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: map
@@ -301,6 +297,76 @@ Visualization Manager:
       Topic: /robot1/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /robot2/move_base/local_costmap/costmap
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/LaserScan
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 0
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: LaserScan
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /robot1/scan
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/LaserScan
+      Color: 255; 255; 255
+      Color Transformer: Intensity
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 0
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: LaserScan
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /robot2/scan
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
       Value: true
   Enabled: true
   Global Options:
@@ -330,7 +396,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.410902976989746
+      Distance: 20.453697204589844
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -338,17 +404,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.18591849505901337
-        Y: 1.2429938316345215
-        Z: 0.09699642658233643
+        X: 0.3881100118160248
+        Y: 1.9360809326171875
+        Z: 4.216800689697266
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2997965812683105
+      Pitch: 1.1347967386245728
       Target Frame: <Fixed Frame>
-      Yaw: 1.0503978729248047
+      Yaw: 1.4354029893875122
     Saved: ~
 Window Geometry:
   Displays:
