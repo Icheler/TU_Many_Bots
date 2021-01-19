@@ -11,7 +11,7 @@
         <arg name="debug" value="false"/>
     </include>
 
-    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rto_description)/urdf/$(arg robot).urdf.xacro"/>
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find rto_description)/urdf/robots/$(arg robot).urdf.xacro"/>
     
     <group ns="robot1">
         <param name="tf_prefix" value="robot1"/>
