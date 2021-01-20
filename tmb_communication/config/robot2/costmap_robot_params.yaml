@@ -1,0 +1,85 @@
+global_costmap: {
+  global_frame: robot2/map,
+  robot_base_frame: robot2/base_link,
+  observation_sources: scan distance_sensors,
+  scan: {
+    sensor_frame: robot2/hokuyo_link, 
+    data_type: LaserScan, 
+    topic: scan, 
+    marking: true, 
+    clearing: true
+  },
+  distance_sensors: {
+  sensor_frame: robot2/base_link, 
+  data_type: PointCloud2, 
+  topic: camera/depth/points, 
+  marking: true, 
+  clearing: false, 
+  obstacle_range: 0.4, 
+  raytrace_range: 0.4, 
+  observation_persistence: 5.0 
+  },
+  obstacle_layer: {
+    observation_sources: scan distance_sensors,
+    scan: {
+      sensor_frame: robot2/hokuyo_link, 
+      data_type: LaserScan, 
+      topic: scan, 
+      marking: true, 
+      clearing: true
+    },
+    distance_sensors: {
+    sensor_frame: robot2/base_link, 
+    data_type: PointCloud2, 
+    topic: camera/depth/points, 
+    marking: true, 
+    clearing: false, 
+    obstacle_range: 0.4, 
+    raytrace_range: 0.4, 
+    observation_persistence: 5.0 
+    }
+  }
+}
+
+local_costmap: {
+  global_frame: robot2/odom,
+  robot_base_frame: robot2/base_link,
+  observation_sources: scan distance_sensors,
+  scan: {
+    sensor_frame: robot2/hokuyo_link, 
+    data_type: LaserScan, 
+    topic: scan, 
+    marking: true, 
+    clearing: true
+  },
+  distance_sensors: {
+  sensor_frame: robot2/base_link, 
+  data_type: PointCloud2, 
+  topic: camera/depth/points, 
+  marking: true, 
+  clearing: false, 
+  obstacle_range: 0.4, 
+  raytrace_range: 0.4, 
+  observation_persistence: 5.0 
+  },
+  obstacle_layer: {
+    observation_sources: scan distance_sensors,
+    scan: {
+      sensor_frame: robot2/hokuyo_link, 
+      data_type: LaserScan, 
+      topic: scan, 
+      marking: true, 
+      clearing: true
+    },
+    distance_sensors: {
+    sensor_frame: robot2/base_link, 
+    data_type: PointCloud2, 
+    topic: camera/depth/points, 
+    marking: true, 
+    clearing: false, 
+    obstacle_range: 0.4, 
+    raytrace_range: 0.4, 
+    observation_persistence: 5.0 
+    }
+  }
+}
