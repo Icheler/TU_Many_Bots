@@ -1,3 +1,7 @@
+# Running the robot detector
+
+ roslaunch darknet_ros darknet_ros.launch
+
 # Installing the perception modules
 
 The perception module used the YOLO object detection library.
