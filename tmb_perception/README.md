@@ -12,7 +12,7 @@ OpenCV is to be installed with C bindings, ie, using pip is unsuitable.
 ## 1) Installing OpenCV
 as per https://docs.opencv.org/3.4.8/d7/d9f/tutorial_linux_install.html
 
-- sudo apt-get purge '&#42;'opencv'&#42;'
+- sudo apt-get purge &#42;opencv&#42;
 - sudo apt-get install build-essential
 - sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
 
@@ -50,7 +50,7 @@ Other libraries in this stack rely on OpenCV 4.2,
 until a better solution is found to target this in each package,
 ensuring it all build correctly takes a few steps.
 - cd <catkinworkspace>
-- sudo apt-get purge '&#42;'opencv'&#42;'
+- sudo apt-get purge &#42;opencv&#42;
 - catkin build darknet_ros
 - sudo apt install ros-noetic-desktop-full
 - catkin config --blacklist darknet_ros
