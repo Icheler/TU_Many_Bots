@@ -26,7 +26,6 @@ as per https://docs.opencv.org/3.4.8/d7/d9f/tutorial_linux_install.html
 - git clone https://github.com/opencv/opencv.git
 - git clone https://github.com/opencv/opencv_contrib.git
 
-- cd opencv
 - cd opencv_contrib
 - git checkout 3.4.8
 - cd ../opencv
