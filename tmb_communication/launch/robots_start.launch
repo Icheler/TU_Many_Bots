@@ -1,10 +1,10 @@
 <launch>
     <arg name="robot" default="$(optenv ROBOT rto-1)" doc="Robot type [rto-1]"/>
     <arg name="blind_robot" default="$(optenv BLIND_ROBOT rto-blind)" doc="Robot type [rto-1-blind]"/>
-    <arg name="robot_env" default="$(optenv ROBOT_ENV simple_world)" doc="Simulation world [simple_world, hallway_loop]"/>
+    <arg name="robot_env" default="$(optenv ROBOT_ENV simple_corridor)" doc="Simulation world [simple_world, hallway_loop]"/>
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" value="$(find rto_worlds)/worlds/$(arg robot_env).world"/>
+        <arg name="world_name" value="$(find tmb_perception)/worlds/$(arg robot_env).world"/>
         <arg name="paused" value="false"/>
         <arg name="use_sim_time" value="true"/>
         <arg name="gui" value="true"/>
@@ -18,7 +18,7 @@
     <group ns="robot1">
         <param name="tf_prefix" value="robot1"/>
         <arg name="name" default="robot" />
-        <arg name="x_pos" default="0.0"/>
+        <arg name="x_pos" default="1.0"/>
         <arg name="y_pos" default="0.0"/>
         <arg name="z_pos" default="0.0"/>
 
@@ -42,7 +42,7 @@
     </group>
     <group ns="robot2">
         <param name="tf_prefix" value="robot2"/>
-            <arg name="x_pos" default="1.0"/>
+            <arg name="x_pos" default="0.0"/>
             <arg name="y_pos" default="0.0"/>
             <arg name="z_pos" default="0.0"/>
             <arg name="name"  value="Robot2"/>
@@ -66,9 +66,10 @@
     </group>
     <group ns="robot_blind">
         <param name="tf_prefix" value="blind_robot"/>
-            <arg name="x_pos" default="2.0"/>
+            <arg name="x_pos" default="2"/>
             <arg name="y_pos" default="0.0"/>
             <arg name="z_pos" default="0.0"/>
+            <arg name="yaw" default="3.14"/>
             <arg name="name"  value="blind_robot"/>
 
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
@@ -82,7 +83,7 @@
         </node>
 
         <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name) -x $(arg x_pos) -y $(arg y_pos)
-            -z $(arg z_pos) -param /blind_robot_description" />
+            -z $(arg z_pos) -Y $(arg yaw) -param /blind_robot_description" />
 
         <node pkg="tmb_communication" type="position_listener" name="listentf" output="screen" >
             <param name="name" type="str" value="blind_robot"/>
