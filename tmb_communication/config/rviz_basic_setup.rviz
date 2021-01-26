@@ -3,7 +3,9 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Map1
+        - /Map3
       Splitter Ratio: 0.5
     Tree Height: 746
   - Class: rviz/Selection
@@ -294,7 +296,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /robot1/move_base/local_costmap/costmap
+      Topic: /robot1/map
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -304,7 +306,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /robot2/move_base/local_costmap/costmap
+      Topic: /robot2/map
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -396,7 +398,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.73596954345703
+      Distance: 10.334447860717773
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
