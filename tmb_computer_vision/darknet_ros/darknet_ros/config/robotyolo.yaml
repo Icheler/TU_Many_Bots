@@ -9,3 +9,5 @@ yolo_model:
   detection_classes:
     names:
       - robot
+      - blind_robot
+      - space_man
