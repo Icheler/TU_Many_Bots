@@ -18,7 +18,7 @@
     <group ns="robot1">
         <param name="tf_prefix" value="robot1"/>
         <arg name="name" default="robot" />
-        <arg name="x_pos" default="1.0"/>
+        <arg name="x_pos" default="0.0"/>
         <arg name="y_pos" default="0.0"/>
         <arg name="z_pos" default="0.0"/>
 
@@ -42,7 +42,7 @@
     </group>
     <group ns="robot2">
         <param name="tf_prefix" value="robot2"/>
-            <arg name="x_pos" default="0.0"/>
+            <arg name="x_pos" default="-1.0"/>
             <arg name="y_pos" default="0.0"/>
             <arg name="z_pos" default="0.0"/>
             <arg name="name"  value="Robot2"/>
@@ -69,7 +69,7 @@
             <arg name="x_pos" default="4"/>
             <arg name="y_pos" default="-3.5"/>
             <arg name="z_pos" default="0.0"/>
-            <arg name="yaw" default="1.57"/>
+            <arg name="yaw" default="7.57"/>
             <arg name="name"  value="blind_robot"/>
 
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">

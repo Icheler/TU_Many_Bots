@@ -50,7 +50,7 @@ bool YoloObjectDetector::readParameters() {
   nodeHandle_.param("image_view/enable_opencv", viewImage_, true);
   nodeHandle_.param("image_view/wait_key_delay", waitKeyDelay_, 3);
   nodeHandle_.param("image_view/enable_console_output", enableConsoleOutput_, false);
-
+  viewImage_ = false;
   // Check if Xserver is running on Linux.
   if (XOpenDisplay(NULL)) {
     // Do nothing!
