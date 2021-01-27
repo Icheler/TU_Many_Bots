@@ -12,23 +12,17 @@ class DarknetRosNodelet : public nodelet::Nodelet {
  public:
   DarknetRosNodelet() = default;
   ~DarknetRosNodelet() {
-    if (darknetRos_2) delete darknetRos_2;
+    if (darknetRos_) delete darknetRos_;
   }
 
  private:
   virtual void onInit() {
     ros::NodeHandle NodeHandle("~");
     NodeHandle = getPrivateNodeHandle();
-    if (darknetRos_) {
-      darknetRos_2 = new darknet_ros::YoloObjectDetector(NodeHandle);
-      darknet_ros::YoloObjectDetector* darknetRos_2;
-    } else {
-      darknetRos_ = new darknet_ros::YoloObjectDetector(NodeHandle);
-      darknet_ros::YoloObjectDetector* darknetRos_;
-    }
+    darknetRos_ = new darknet_ros::YoloObjectDetector(NodeHandle);
   }
 
-
+  darknet_ros::YoloObjectDetector* darknetRos_;
 };
 
 // Declare as a Plug-in
