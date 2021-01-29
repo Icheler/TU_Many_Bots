@@ -1,9 +1,9 @@
 <launch>
     <group ns="robot1">
-        <node pkg="slam_toolbox" type="sync_slam_toolbox_node" name="slam_toolbox" output="screen">
+        <node pkg="slam_toolbox" type="async_slam_toolbox_node" name="slam_toolbox" output="screen">
             <remap from="/map" to="map"/>
             <remap from="/map_metadata" to="map_metadata"/>
-            <rosparam command="load" file="$(find tmb_communication)/config/robot1/mapper_params_online_sync.yaml" />
+            <rosparam command="load" file="$(find tmb_communication)/config/robot1/mapper_params_online_async.yaml" />
         </node>
         <node pkg="explore_lite" type="explore" name="tmb_explorer">
             <param name="robot_base_frame" value="/robot1/base_link"/>
@@ -26,7 +26,6 @@
             <!-- TODO: Probably exchange base local planner -->
             <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" />
             <param name="controller_frequency" value="15.0" />
-
         </node>
     </group>
 </launch>
