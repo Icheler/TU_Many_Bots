@@ -1,22 +1,22 @@
 <launch>
     <group ns="robot1/map_merge/">
-        <param name="init_pose_x" value="1.0"/>
-        <param name="init_pose_y" value="0.0"/>
-        <param name="init_pose_z" value="0.0"/>
-        <param name="init_pose_yaw" value="0.0"/>
+        <param name="init_pose_x" value=" $(env tmb_start_robot1_x)"/>
+        <param name="init_pose_y" value=" $(env tmb_start_robot1_y)"/>
+        <param name="init_pose_z" value=" $(env tmb_start_robot1_z)"/>
+        <param name="init_pose_yaw" value=" $(env tmb_start_robot1_yaw)"/>
     </group>
 
     <group ns="robot2/map_merge">
-        <param name="init_pose_x" value="-1"/>
-        <param name="init_pose_y" value="0"/>
-        <param name="init_pose_z" value="0.0"/>
-        <param name="init_pose_yaw" value="0.0"/>
+        <param name="init_pose_x" value=" $(env tmb_start_robot2_x)"/>
+        <param name="init_pose_y" value=" $(env tmb_start_robot2_y)"/>
+        <param name="init_pose_z" value=" $(env tmb_start_robot2_z)"/>
+        <param name="init_pose_yaw" value=" $(env tmb_start_robot2_yaw)"/>
     </group>
     <group ns="blind_robot/map_merge">
-        <param name="init_pose_x" value="2.0"/>
-        <param name="init_pose_y" value="0.0"/>
-        <param name="init_pose_z" value="0.0"/>
-        <param name="init_pose_yaw" value="0.0"/>
+        <param name="init_pose_x" value=" $(env tmb_start_robot_blind_x)"/>
+        <param name="init_pose_y" value=" $(env tmb_start_robot_blind_y)"/>
+        <param name="init_pose_z" value=" $(env tmb_start_robot_blind_z)"/>
+        <param name="init_pose_yaw" value=" $(env tmb_start_robot_blind_yaw)"/>
     </group>
 
     <node pkg="multirobot_map_merge" type="map_merge" name="tmb_merger" respawn="False">

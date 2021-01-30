@@ -1,5 +1,5 @@
 <launch>
-    <include file="$(find tmb_communication)/launch/robots_start.launch"/>
+    <include file="$(find tmb_startup)/launch/robots_start.launch"/>
     <include file="$(find tmb_communication)/launch/robot_nodes.launch">
       <arg name="robot_name" value="robot1" />
     </include>
