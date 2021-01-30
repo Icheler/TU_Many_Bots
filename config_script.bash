@@ -70,3 +70,20 @@ then
   export tmb_start_robot_blind_z="0.0"
   export tmb_start_robot_blind_yaw="0.0"
 fi
+if [ $world = "maze_simple_2" ]
+then
+  export tmb_start_robot1_x="3.7"
+  export tmb_start_robot1_y="-8.4"
+  export tmb_start_robot1_z="0.0"
+  export tmb_start_robot1_yaw="0.0"
+
+  export tmb_start_robot2_x="9.5"
+  export tmb_start_robot2_y="8.5"
+  export tmb_start_robot2_z="0.0"
+  export tmb_start_robot2_yaw="-1.6"
+
+  export tmb_start_robot_blind_x="-9.0"
+  export tmb_start_robot_blind_y="-8.0"
+  export tmb_start_robot_blind_z="0.0"
+  export tmb_start_robot_blind_yaw="0.0"
+fi
