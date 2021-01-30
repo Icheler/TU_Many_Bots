@@ -1,0 +1,7 @@
+<launch>
+    <include file="$(find tmb_startup)/launch/robots_start.launch"/>
+    <include file="$(find tmb_communication)/launch/robot_nodes1.launch" />
+    <include file="$(find tmb_communication)/launch/robot_nodes2.launch" />
+    <include file="$(find tmb_communication)/launch/multi_map_merge.launch"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find tmb_communication)/config/rviz_basic_setup.rviz"/>
+</launch>
