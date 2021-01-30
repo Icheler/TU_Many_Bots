@@ -38,7 +38,7 @@ then
 fi
 if [ $world = "maze" ]
 then
-  export tmb_start_robot1_x="3.6"
+  export tmb_start_robot1_x="4.3"
   export tmb_start_robot1_y="-6"
   export tmb_start_robot1_z="0.0"
   export tmb_start_robot1_yaw="3.0"
