@@ -1,6 +1,6 @@
 <launch>
     <arg name="robot" default="$(optenv tmb_ROBOT rto-1)" doc="Robot type [rto-1]"/>
-    <arg name="blind_robot" default="$(optenv tmb_ROBOT_BLIND rto-blind)" doc="Robot type [rto-1-blind]"/>
+    <arg name="robot_blind" default="$(optenv tmb_ROBOT_BLIND rto-blind)" doc="Robot type [rto-1-blind]"/>
     <arg name="robot_env" default="$(optenv tmb_ROBOT_ENV simple_corridor)" doc="Simulation world [maze, maze_simple, simple_corridor]"/>
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
         <arg name="world_name" value="$(find tmb_models)/worlds/$(arg robot_env).world"/>
@@ -12,7 +12,7 @@
     </include>
 
     <param name="robot_description" command="$(find xacro)/xacro --inorder $(find tmb_models)/urdf/robots/$(arg robot).urdf.xacro"/>
-    <param name="blind_robot_description" command="$(find xacro)/xacro --inorder $(find tmb_models)/urdf/robots/$(arg blind_robot).urdf.xacro"/>
+    <param name="robot_blind_description" command="$(find xacro)/xacro --inorder $(find tmb_models)/urdf/robots/$(arg robot_blind).urdf.xacro"/>
 
     <group ns="robot1">
         <param name="tf_prefix" value="robot1"/>
@@ -52,8 +52,8 @@
         </node>
     </group>
     <group ns="robot_blind">
-        <param name="tf_prefix" value="blind_robot"/>
-            <arg name="name"  value="blind_robot"/>
+        <param name="tf_prefix" value="robot_blind"/>
+            <arg name="name"  value="robot_blind"/>
 
         <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
             <param name="publish_frequency" type="double" value="20.0"/>
@@ -65,10 +65,10 @@
           -y $(env tmb_start_robot_blind_y)
           -z $(env tmb_start_robot_blind_z)
           -Y $(env tmb_start_robot_blind_yaw)
-          -param /blind_robot_description" />
+          -param /robot_blind_description" />
 
         <node pkg="tmb_communication" type="position_listener" name="listentf" output="screen" >
-            <param name="name" type="str" value="blind_robot"/>
+            <param name="name" type="str" value="robot_blind"/>
         </node>
     </group>
 </launch>

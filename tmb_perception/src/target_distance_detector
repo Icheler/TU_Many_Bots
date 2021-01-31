@@ -44,6 +44,12 @@ class DistanceDetector:
             total_distance = np.linalg.norm(robot_to_blind)
             norm_robot_to_blind = normalize(robot_to_blind)
             angle_to_target = np.dot(norm_robot_to_blind, normalized_bearing)
+            print('------------------------------------------')
+            print("pose received for robot:", robot)
+            print('distance to blind', total_distance)
+            print('pose', pose)
+            print('angle_to_target', angle_to_target)
+            print('------------------------------------------')
             # todo add case for objects obstructing the view.
             if total_distance < 2 and total_distance > 0.6 and angle_to_target > 0.6:
                 self.pub_absolute_position.publish(Point(self.blind_robot_position[0], self.blind_robot_position[1], 0))
