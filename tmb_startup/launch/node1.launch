@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find tmb_communication)/launch/robot_nodes.launch">
+    <arg name="robot_name" value="robot1" />
+  </include>
+  <include file="$(find tmb_communication)/launch/multi_map_merge.launch"/>
+</launch>
