@@ -18,6 +18,18 @@ The topics from this module can be mocked, however, and to ensure the packaged b
 
 ## Starting the simulation
 
+Note! To setup the robot positions,
+
+go to src/TU_Many_Bots
+```
+source config_script.bash
+```
+This will give a printout of the configured environment.
+The map can be changed by
+export robot_env=[simple_corridor, maze, maze_simple, maze_simple_2]
+then running the config script again.
+It's possible that the maze_simple_2 has invalid starting positions, just change them on the config script and add pr thanks!
+
 The most important commands to get the simulation to start:
 ```
 roslaunch tmb_startup complete_launch.launch
