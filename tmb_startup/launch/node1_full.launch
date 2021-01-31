@@ -1,0 +1,39 @@
+<launch>
+  <arg name="robot" default="$(optenv tmb_ROBOT rto-1)" doc="Robot type [rto-1]"/>
+  <arg name="blind_robot" default="$(optenv tmb_ROBOT_BLIND rto-blind)" doc="Robot type [rto-1-blind]"/>
+  <arg name="robot_env" default="$(optenv tmb_ROBOT_ENV simple_corridor)" doc="Simulation world [maze, maze_simple, simple_corridor]"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(find tmb_models)/worlds/$(arg robot_env).world"/>
+      <arg name="paused" value="false"/>
+      <arg name="use_sim_time" value="true"/>
+      <arg name="gui" value="true"/>
+      <arg name="headless" value="false"/>
+      <arg name="debug" value="false"/>
+  </include>
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(find tmb_models)/urdf/robots/$(arg robot).urdf.xacro"/>
+  <param name="blind_robot_description" command="$(find xacro)/xacro --inorder $(find tmb_models)/urdf/robots/$(arg blind_robot).urdf.xacro"/>
+
+  <group ns="robot1">
+      <param name="tf_prefix" value="robot1"/>
+      <arg name="name" default="robot1" />
+
+      <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+          <param name="publish_frequency" type="double" value="20.0"/>
+      </node>
+
+      <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf"  args="-urdf -model $(arg name)
+          -x $(env tmb_start_robot1_x)
+          -y $(env tmb_start_robot1_y)
+          -z $(env tmb_start_robot1_z)
+          -Y $(env tmb_start_robot1_yaw)
+          -param /robot_description" />
+
+      <node pkg="tmb_communication" type="position_listener" name="listentf" output="screen" >
+          <param name="name" type="str" value="robot1"/>
+      </node>
+  </group>
+  <include file="$(find tmb_communication)/launch/robot_nodes.launch">
+    <arg name="robot_name" value="robot1" />
+  </include>
+  <include file="$(find tmb_communication)/launch/multi_map_merge.launch"/>
+</launch>
