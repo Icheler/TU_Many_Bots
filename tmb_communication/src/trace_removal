@@ -12,7 +12,7 @@ from nav_msgs.msg import OccupancyGrid
 import matplotlib.pyplot as plt
 
 
-class test(object):
+class Trace_removal(object):
     def __init__(self):
 
         self.robot1_position = Point()
@@ -53,8 +53,8 @@ class test(object):
 
 
 if __name__ == '__main__':
-    rospy.init_node('test')
-    test = test()
+    rospy.init_node('trace_removal')
+    trace_removal = Trace_removal()
     rospy.spin()
 
 
