@@ -44,5 +44,4 @@ Topics:
 
 Node: target_distance_detector
 Publishes:
-* /tmb_perception/blind_robot_position || type: point
-* /tmb_perception/blind_robot_seen || type: string (ie, the name of the robot [robot1, robot2] which is seeing the blind robot)
+* '/tmb_perception/object_sighted', of custom type: Object_Sighted
