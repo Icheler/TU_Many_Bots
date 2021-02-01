@@ -67,7 +67,7 @@
           -Y $(env tmb_start_robot_blind_yaw)
           -param /robot_blind_description" />
 
-        <node pkg="tmb_communication" type="position_listener" name="listentf" output="screen" >
+        <node pkg="tmb_communication" type="gazebo_position_listener" name="gazebo_pos_listener" output="screen" >
             <param name="name" type="str" value="robot_blind"/>
         </node>
     </group>

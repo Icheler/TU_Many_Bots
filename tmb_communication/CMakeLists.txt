@@ -213,3 +213,11 @@ include_directories(
 catkin_install_python(PROGRAMS src/position_listener
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+catkin_install_python(PROGRAMS src/trace_removal
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(PROGRAMS src/gazebo_position_listener
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
