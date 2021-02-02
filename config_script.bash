@@ -5,7 +5,7 @@ echo "viable worlds are: [simple_corridor, maze, maze_simple, maze_simple_2]"
 echo "-------------------------------------------------------------"
 if [ -z ${robot_env+x} ]
 then
-  world=maze_simple_2
+  world=simple_corridor
 else
   world=$robot_env
 fi
