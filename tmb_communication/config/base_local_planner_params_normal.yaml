@@ -9,3 +9,7 @@ TrajectoryPlannerROS:
   acc_lim_y: 2.5
 
   holonomic_robot: true
+
+  oscillation_timeout: 10
+
+  max_planning_retries: 15
