@@ -1,6 +1,5 @@
 map_update_interval: 0.2
 # lskip : 2
-particles: 100
 xmin : -29.6
 xmax : 29.6
 ymin : -29.6

@@ -2,11 +2,6 @@
    <arg name="robot_name" />
    <arg name="node_start_delay" default="1.0" />
     <group ns="$(arg robot_name)">
-        <!-- <node pkg="slam_toolbox" type="async_slam_toolbox_node" name="slam_toolbox" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
-            <remap from="/map" to="map"/>
-            <remap from="/map_metadata" to="map_metadata"/>
-            <rosparam command="load" file="$(find tmb_communication)/config/$(arg robot_name)/mapper_params_online_async.yaml" />
-        </node> -->
         <node pkg="gmapping" type="slam_gmapping" name="gmapping" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
             <param name="base_frame" value="/$(arg robot_name)/base_link"/>
             <param name="odom_frame" value="/$(arg robot_name)/odom"/>
