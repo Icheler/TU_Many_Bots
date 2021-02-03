@@ -20,7 +20,7 @@ and change `GPU=1` and `OPENCV=1`
 ###### Troubleshooting
 - Ensure cuda is installed by running `nvidia-smi`
 - Ensure OpenCV install is OK by running `pkg-config --cflags opencv`
-
+- Ensure the `make` process worked with `./darknet imagenet test cfg/alexnet.cfg alexnet.weights`
 ***
 #### 2) Training the model.
 Copy the directory **custom_test_data** into the darknet folder.
