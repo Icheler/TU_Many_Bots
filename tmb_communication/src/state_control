@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+import roslaunch
+import rospy
+import os
+
+
+rospy.init_node('en_Mapping', anonymous=True)
+os.system("roslaunch tmb_startup robots_start.launch")
+
+
