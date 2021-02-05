@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version="1.4">
-  <model name="my_model">
+  <model name="goal_cube">
     <pose>0 0 0.5 0 0 0</pose>
     <static>true</static>
     <link name="link">

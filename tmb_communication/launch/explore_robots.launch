@@ -14,7 +14,7 @@
             <param name="min_frontier_size" value="0.5"/>
         </node>
     </group>
-    <group ns="robot2">
+    <group ns="robot2" if="$(env tmb_start_both)">
         <node pkg="explore_lite" type="explore" name="tmb_explorer">
             <param name="robot_base_frame" value="/robot2/base_link"/>
             <param name="costmap_topic" value="/robot2/map"/>

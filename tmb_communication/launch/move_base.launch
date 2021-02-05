@@ -13,7 +13,7 @@
 
         </node>
     </group>
-    <group ns="robot2">
+    <group ns="robot2" if="$(env tmb_start_both)">
 
         <!-- Run move_base -->
         <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">

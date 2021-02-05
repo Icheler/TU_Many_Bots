@@ -3,6 +3,18 @@
 import rospy
 import rospkg
 import numpy as np
+import os
+
+# Set environment variables
+os.environ['API_USER'] = 'username'
+os.environ['API_PASSWORD'] = 'secret'
+
+# Get environment variables
+USER = os.getenv('API_USER')
+PASSWORD = os.environ.get('API_PASSWORD')
+
+# Getting non-existent keys
+FOO = os.getenv('FOO') # None
 
 from geometry_msgs.msg import Point, Pose, Quaternion
 from std_msgs.msg import Bool, String, Int8
@@ -27,6 +39,9 @@ class DistanceDetector:
         self.blind_robot_position = np.array([4, -3.5])
         self.latest_data = Object_Sighted()
         self.object_detected=True
+        goal_x = os.getenv('tmb_start_goal_x')
+        goal_y = os.getenv('tmb_start_goal_y')
+        self.goal_position=np.array([float(goal_x), float(goal_y)])
 
     def get_blind_robot(self, point):
         self.blind_robot_position = np.array([point.x, point.y])
@@ -45,33 +60,36 @@ class DistanceDetector:
             # in order to account for occlusion the coordinate frame is
             # translated forward in the direction that the robot is facing.
             moved_position = position + 0.6*normalized_bearing;
-            # relative position vector to the blind robot
-            robot_to_blind = self.blind_robot_position - moved_position
-            total_distance = np.linalg.norm(robot_to_blind)
-            norm_robot_to_blind = normalize(robot_to_blind)
-            # value between -1 and 1, where 1 is facing exactly at the blind, -1 is facing opposite.
-            incidence = np.dot(norm_robot_to_blind, normalized_bearing)
-            leaning = "right" if np.cross(normalized_bearing, norm_robot_to_blind) > 0 else "left"
-            object_detected = "robot_detected"
-            if False:
-                print('------------------------------------------')
-                print("pose received for robot:", robot)
-                print('distance to blind', total_distance)
-                print('pose', pose)
-                print('angle_to_target', incidence)
-                print('------------------------------------------')
-            # todo add case for objects obstructing the view.
-            self.latest_data.detected_by=robot
+            # relative position vector to the obstacle
+            for index, obstacle in enumerate([self.goal_position, self.blind_robot_position]):
+                robot_to_obstacle = obstacle - moved_position
+                total_distance = np.linalg.norm(robot_to_obstacle)
+                norm_robot_to_obstacle= normalize(robot_to_obstacle)
+                # value between -1 and 1, where 1 is facing exactly at the blind, -1 is facing opposite.
+                incidence = np.dot(norm_robot_to_obstacle, normalized_bearing)
+                leaning = "right" if np.cross(normalized_bearing, norm_robot_to_obstacle) > 0 else "left"
+                object_name = "goal" if index == 0 else "blind_robot"
 
-            if total_distance < 2 and total_distance > 0.6 and incidence > 0.6:
-                self.latest_data.object_detected="robot_blind"
-                self.latest_data.object_position_estimate=Point(self.blind_robot_position[0], self.blind_robot_position[1], 0)
-                self.latest_data.object_to_the_left_or_right=leaning
-                self.latest_data.distance=total_distance
-                self.latest_data.incidence=incidence
-                self.object_detected = True
-            else:
-                self.object_detected = False
+                if os.getenv('tmb_publish_perception_logs') == True:
+                    print('------------------------------------------')
+                    print("regarding object:", object_name)
+                    print("pose received for robot:", robot)
+                    print('distance to target', total_distance)
+                    print('robot pose (x, y)', (pose.x, pose.y))
+                    print('incidence', incidence)
+                    print('------------------------------------------')
+                # todo add case for objects obstructing the view.
+                self.latest_data.detected_by=robot
+
+                if total_distance < 2 and total_distance > 0.6 and incidence > 0.6:
+                    self.latest_data.object_detected= object_name
+                    self.latest_data.object_position_estimate=Point(obstacle[0], obstacle[1], 0)
+                    self.latest_data.object_to_the_left_or_right=leaning
+                    self.latest_data.distance=total_distance
+                    self.latest_data.incidence=incidence
+                    self.object_detected = True
+                else:
+                    self.object_detected = False
         return get_pose_func
 
     def send_data(self, data):
@@ -87,5 +105,5 @@ class DistanceDetector:
 if __name__ == "__main__":
     rospy.init_node('target_distance_detector')
     target_distance_detector = DistanceDetector()
-    rospy.Timer(rospy.Duration(1.0/100.0), target_distance_detector.send_data)
+    rospy.Timer(rospy.Duration(1.0/1.0), target_distance_detector.send_data)
     target_distance_detector.run()
