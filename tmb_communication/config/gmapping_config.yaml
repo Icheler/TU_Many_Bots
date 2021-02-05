@@ -1,4 +1,4 @@
-map_update_interval: 0.2
+map_update_interval: 1
 # lskip : 2
 xmin : -29.6
 xmax : 29.6
