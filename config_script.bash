@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "-------------------------------------------------------------"
 echo "viable robots are: [rto-1]"
-echo "viable worlds are: [simple_corridor, maze, maze_simple, maze_simple_2]"
+echo "viable worlds are: [simple_corridor, maze, maze_simple, maze_simple_2, maze_clutter]"
 echo "-------------------------------------------------------------"
 if [ -z ${robot_env+x} ]
 then
@@ -72,18 +72,35 @@ then
 fi
 if [ $world = "maze_simple_2" ]
 then
-  export tmb_start_robot1_x="0.7"
-  export tmb_start_robot1_y="-2.4"
+  export tmb_start_robot1_x="1.0"
+  export tmb_start_robot1_y="0.0"
   export tmb_start_robot1_z="0.0"
   export tmb_start_robot1_yaw="0.0"
 
-  export tmb_start_robot2_x="4.5"
-  export tmb_start_robot2_y="5.5"
+  export tmb_start_robot2_x="-1.0"
+  export tmb_start_robot2_y="0.0"
   export tmb_start_robot2_z="0.0"
-  export tmb_start_robot2_yaw="-1.6"
+  export tmb_start_robot2_yaw="0.0"
 
   export tmb_start_robot_blind_x="-5.0"
-  export tmb_start_robot_blind_y="-2.0"
+  export tmb_start_robot_blind_y="8.0"
+  export tmb_start_robot_blind_z="0.0"
+  export tmb_start_robot_blind_yaw="0.0"
+fi
+if [ $world = "maze_clutter" ]
+then
+  export tmb_start_robot1_x="1.0"
+  export tmb_start_robot1_y="0.0"
+  export tmb_start_robot1_z="0.0"
+  export tmb_start_robot1_yaw="0.0"
+
+  export tmb_start_robot2_x="-1.0"
+  export tmb_start_robot2_y="0.0"
+  export tmb_start_robot2_z="0.0"
+  export tmb_start_robot2_yaw="0.0"
+
+  export tmb_start_robot_blind_x="-5.0"
+  export tmb_start_robot_blind_y="8.0"
   export tmb_start_robot_blind_z="0.0"
   export tmb_start_robot_blind_yaw="0.0"
 fi
