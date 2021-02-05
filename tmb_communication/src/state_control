@@ -1,10 +1,31 @@
 #!/usr/bin/env python3
 import roslaunch
-import rospy
 import os
+import roslib
+import rospy
+import math
+import tf
+import numpy as np
+import geometry_msgs.msg
+from geometry_msgs.msg import Point, Pose
+from std_msgs.msg import Float32
+from nav_msgs.msg import OccupancyGrid
+import matplotlib.pyplot as plt
 
 
-rospy.init_node('en_Mapping', anonymous=True)
-os.system("roslaunch tmb_startup robots_start.launch")
+class State_control(object):
+    def __init__(self):
 
+        self.bind_robot_detected = False
+        self.goal_detected = False
+        self.path_exists = False
+
+
+
+
+if __name__ == '__main__':
+    rospy.init_node('state_control')
+    #os.system("roslaunch tmb_startup robots_start.launch")
+    state_control = State_control()
+    rospy.spin()
 
