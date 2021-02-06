@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+
+import rospy
+import rospkg
+import numpy as np
+import os
+
+
+from geometry_msgs.msg import Point, Pose, Quaternion
+from std_msgs.msg import Bool, String, Int8
+from nav_msgs.msg import Odometry
+from tmb_messages.msg import Bounding_Box_Interpretation
+from darknet_ros_msgs.msg import BoundingBoxes
+from sensor_msgs.msg import LaserScan
+# Type: darknet_ros_msgs/BoundingBoxes
+'''
+header:
+  seq: 12
+  stamp:
+    secs: 1612599990
+    nsecs: 464141869
+  frame_id: "detection"
+image_header:
+  seq: 174
+  stamp:
+    secs: 427
+    nsecs: 398000000
+  frame_id: "robot1/camera_depth_optical_frame"
+bounding_boxes:
+  -
+    probability: 0.960372269153595
+    xmin: 0
+    ymin: 279
+    xmax: 640
+    ymax: 409
+    id: 1
+    Class: "blind_robot"
+  -
+    probability: 0.633991539478302
+    xmin: 0
+    ymin: 345
+    xmax: 640
+    ymax: 381
+    id: 1
+    Class: "blind_robot"
+  -
+    probability: 0.32626232504844666
+    xmin: 0
+    ymin: 261
+    xmax: 640
+    ymax: 407
+    id: 1
+    Class: "blind_robot"
+
+
+
+
+scan
+angle_min: -2.0
+angle_max: 2.0
+angle_increment: 0.016393441706895828
+
+'''
+
+CAMERA_WIDTH = 640.0;
+class BoundingBoxInterpreter:
+
+    def __init__(self):
+        rospack = rospkg.RosPack()
+
+        # Initialize Publishers
+        self.pub_interpretation = rospy.Publisher('/tmb_perception/bounding_box_interpretation', Bounding_Box_Interpretation, queue_size=10)
+
+        # Initialize Subscribers
+        self.sub_bounding_box_listener = rospy.Subscriber('/robot1/bounding_boxes', BoundingBoxes, self.sub_bounding_box_listener)
+        self.sub_robot_pose = rospy.Subscriber('/robot1/scan', LaserScan, self.save_scan)
+
+        self.most_recent_scan = None
+
+    def save_scan(self, scan):
+        self.most_recent_scan = scan.ranges
+
+    def sub_bounding_box_listener(self, data):
+        '''
+            Received a bounding box dection an generated a corresponding
+            Object_Sighted Message
+        '''
+        bounding_box = data.bounding_boxes[0]
+        detected_object = bounding_box.Class
+        target_distance = self.compute_object_distance(bounding_box, self.most_recent_scan)
+        if target_distance is None:
+            return
+        object = Bounding_Box_Interpretation()
+
+        object.detected_by = "robot1"
+        object.object_detected = bounding_box.Class
+        object.distance = target_distance
+        object.camera_center_position = self.get_bounding_box_center(bounding_box)
+        self.pub_interpretation.publish(Bounding_Box_Interpretation)
+
+        print('coputed distance', target_distance)
+        print('camera_center_position', object.camera_center_position)
+
+
+    def compute_object_distance(self, bounding_box, most_recent_scan):
+        '''
+            Calculate the object distance corresponding to a bounding box
+            and the lazer scan readings.
+            Currently the three closest scans are used,
+            it could be of interest to also incorporate bounding box size in this calculation.
+        '''
+        if most_recent_scan is None:
+            return None
+        object_center = self.get_bounding_box_center(bounding_box)
+        total_scans = len(most_recent_scan)
+        middle_index = int(total_scans * object_center)
+        # todo do check out of bounds
+        relevant_scans = most_recent_scan[middle_index -5 : middle_index + 5]
+        return np.min(relevant_scans)
+        #
+
+
+    def get_bounding_box_center(self, box):
+        '''
+        Parse an an array of bounding boxes
+        and return the center (measured as value between 0 and 1 from left to right)
+
+        image_header:
+          seq: 174
+          stamp:
+            secs: 427
+            nsecs: 398000000
+          frame_id: "robot1/camera_depth_optical_frame"
+        bounding_boxes:
+          -
+            probability: 0.960372269153595
+            xmin: 0
+            ymin: 279
+            xmax: 640
+            ymax: 409
+            id: 1
+            Class: "blind_robot"
+
+        '''
+        x_position = (box.xmax + box.xmin) / 2.0
+        return x_position / CAMERA_WIDTH
+
+    def get_corresponding_scans(self, scan_ranges):
+        '''
+            Convert lazer scan measurements from radial divisions
+            to the 2d camera plane.
+            Returns an array of data which spans the camera frame from left to right.
+            Scan properties:
+            angle_min: -2.0
+            angle_max: 2.0
+            angle_increment: 0.016393441706895828
+            Camera Properties:
+            xmax: 640
+            angle_range:  1.0 (from imperic data)
+            Which means the accepted angle is -0.5 < x < 0.5 ---> 0, 1
+            As the scan range increments in steps of 0.0163
+            Steps to skip = total_angle * angle / step
+            We slice the array from (2 - 0.5) * 0.0163
+            ## TODO -> consider taking reading these, not hard coding.
+
+        '''
+        scan_count = len(scan_ranges)
+        out_of_bounds_count_per_side = int((2 - 0.5) * 0.0163)
+        total_to_omit = out_of_bounds_count_per_side * 2
+        parsed_scan = scan_ranges[out_of_bounds_count_per_side: (scan_count - out_of_bounds_count_per_side)]
+        self.most_recent_scan = parsed_scan
+        return scan_ranges[out_of_bounds_count_per_side: (scan_count - out_of_bounds_count_per_side)]
+
+    def send_data(self, data):
+        if self.object_detected:
+            self.pub_object_sighted.publish(self.latest_data)
+        else:
+            self.pub_object_sighted.publish(Object_Sighted())
+
+    def run(self):
+        while not rospy.is_shutdown():
+            pass
+
+if __name__ == "__main__":
+    rospy.init_node('bounding_box_interpreter')
+    bounding_box_interpreter = BoundingBoxInterpreter()
+    bounding_box_interpreter.run()

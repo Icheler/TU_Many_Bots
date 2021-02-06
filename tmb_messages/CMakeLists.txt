@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   Object_Sighted.msg
+  Bounding_Box_Interpretation.msg
 )
 
 generate_messages(
