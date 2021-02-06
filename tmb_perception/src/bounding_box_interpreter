@@ -84,6 +84,11 @@ class BoundingBoxInterpreter:
         '''
             Received a bounding box dection an generated a corresponding
             Object_Sighted Message
+            string detected_by
+            string object_detected
+            float32 distance
+            float32 camera_center_position
+
         '''
         bounding_box = data.bounding_boxes[0]
         detected_object = bounding_box.Class
@@ -93,13 +98,17 @@ class BoundingBoxInterpreter:
         object = Bounding_Box_Interpretation()
 
         object.detected_by = "robot1"
-        object.object_detected = bounding_box.Class
         object.distance = target_distance
+        object.object_detected = bounding_box.Class
         object.camera_center_position = self.get_bounding_box_center(bounding_box)
-        self.pub_interpretation.publish(Bounding_Box_Interpretation)
 
         print('coputed distance', target_distance)
         print('camera_center_position', object.camera_center_position)
+        print('Bounding_Box_Interpretation', Bounding_Box_Interpretation)
+        print('object.object_detected = bounding_box.Class', bounding_box.Class)
+        self.pub_interpretation.publish(object)
+
+
 
 
     def compute_object_distance(self, bounding_box, most_recent_scan):

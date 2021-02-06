@@ -1,0 +1,8 @@
+<launch>
+    <node pkg="tmb_perception" type="target_distance_detector" name="target_distance_detector1">
+      <param name="robot_name" value="robot1"/>
+    </node>
+    <node pkg="tmb_perception" type="target_distance_detector" name="target_distance_detector2" if="$(env tmb_start_both)" >
+      <param name="robot_name" value="robot2"/>
+    </node>
+</launch>
