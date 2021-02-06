@@ -1981,60 +1981,6 @@
       </link>
       <static>1</static>
     </model>
-    <model name='my_model'>
-      <pose>-4.60322 6.47698 0.5 0 -0 0</pose>
-      <static>1</static>
-      <link name='link'>
-        <inertial>
-          <mass>1</mass>
-          <inertia>
-            <ixx>0.083</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.083</iyy>
-            <iyz>0</iyz>
-            <izz>0.083</izz>
-          </inertia>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <surface>
-            <contact>
-              <collide_bitmask>1</collide_bitmask>
-              <ode/>
-            </contact>
-            <bounce/>
-            <friction>
-              <torsional>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>0.1 0.1 0.1 1</specular>
-            <emissive>0 0 0 0</emissive>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-    </model>
     <state world_name='default'>
       <sim_time>274 382000000</sim_time>
       <real_time>280 660224333</real_time>
@@ -2301,16 +2247,6 @@
         <scale>1 1 1</scale>
         <link name='link'>
           <pose>0 0 0 0 -0 0</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='my_model'>
-        <pose>-4.60322 6.47698 0.5 0 -0 0</pose>
-        <scale>1 1 1</scale>
-        <link name='link'>
-          <pose>-4.60322 6.47698 0.5 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>

@@ -6,7 +6,7 @@
         <param name="init_pose_yaw" value=" $(env tmb_start_robot1_yaw)"/>
     </group>
 
-    <group ns="robot2/map_merge">
+    <group ns="robot2/map_merge" if="$(env tmb_start_both)">
         <param name="init_pose_x" value=" $(env tmb_start_robot2_x)"/>
         <param name="init_pose_y" value=" $(env tmb_start_robot2_y)"/>
         <param name="init_pose_z" value=" $(env tmb_start_robot2_z)"/>
