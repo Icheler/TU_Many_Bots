@@ -1,0 +1,4 @@
+string detected_by
+string object_detected
+float32 distance
+float32 camera_center_position

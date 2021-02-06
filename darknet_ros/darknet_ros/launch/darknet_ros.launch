@@ -12,13 +12,13 @@
 
   <!-- ROS and network parameter files -->
   <arg name="ros_param_file"             default="$(find darknet_ros)/config/ros.yaml"/>
-  <arg name="ros_param_file2"             default="$(find darknet_ros)/config/ros2.yaml"/>
   <arg name="network_param_file"         default="$(find darknet_ros)/config/robotyolo.yaml"/>
 
   <!-- Load parameters -->
   <rosparam command="load" ns="darknet_ros" file="$(arg ros_param_file)"/>
   <rosparam command="load" ns="darknet_ros" file="$(arg network_param_file)"/>
-  <rosparam command="load" ns="darknet_ros2" file="$(arg ros_param_file2)"/>
+  <rosparam command="load" ns="darknet_ros2" file="$(arg ros_param_file)"/>
+  <rosparam command="load" ns="darknet_ros2" file="$(arg network_param_file)"/>
 
   <!-- Start darknet and ros wrapper -->
   <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros" output="screen" launch-prefix="$(arg launch_prefix)">
@@ -26,7 +26,7 @@
     <param name="config_path"           value="$(arg yolo_config_path)" />
     <remap from="/robot1/camera/rgb/image_raw"  to="/robot1/camera/rgb/image_raw" />
   </node>
-  <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros2" output="screen" launch-prefix="$(arg launch_prefix)">
+  <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros2" output="screen" launch-prefix="$(arg launch_prefix)" if="$(env tmb_start_both)">
     <param name="weights_path"          value="$(arg yolo_weights_path)" />
     <param name="config_path"           value="$(arg yolo_config_path)" />
     <remap from="/robot1/camera/rgb/image_raw"  to="/robot2/camera/rgb/image_raw" />
