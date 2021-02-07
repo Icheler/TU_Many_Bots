@@ -26,7 +26,7 @@ class DistanceDetector:
         self.pub_object_sighted = rospy.Publisher('/tmb_perception/object_sighted', Object_Sighted, queue_size=10)
 
         # Initialize Subscribers
-        self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/odom', Odometry, self.get_pose)
+        self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/pose', Pose, self.get_pose)
         self.blind_robot_pose = rospy.Subscriber('/robot_blind/pose', Pose, self.get_blind_robot)
         rospy.Subscriber('/tmb_perception/bounding_box_interpretation', Bounding_Box_Interpretation, self.get_bounding_box_interpretation)
 
@@ -80,9 +80,9 @@ class DistanceDetector:
         pos = point.position
         self.blind_robot_position = np.array([pos.x, pos.y])
 
-    def get_pose(self, odometry):
-        pose = odometry.pose.pose.orientation
-        pos = odometry.pose.pose.position
+    def get_pose(self, data):
+        pose = data.orientation
+        pos = data.position
         yaw = np.arctan2(2.0*(pose.w*pose.z), pose.w*pose.w - pose.z*pose.z);
         # Where bearing is a unit vector depicting the direction the
         # robot (robot1, or robot2) is facing,
@@ -95,6 +95,7 @@ class DistanceDetector:
         # translated forward in the direction that the robot is facing.
         moved_position = self.robot_position + 0.2*normalized_bearing;
         # relative position vector to the obstacle
+        self.object_detected = False
         for index, obstacle in enumerate([self.goal_position, self.blind_robot_position]):
             robot_to_obstacle = obstacle - moved_position
             total_distance = np.linalg.norm(robot_to_obstacle)
@@ -117,7 +118,7 @@ class DistanceDetector:
                 print('------------------------------------------')
             # todo add case for objects obstructing the view.
             self.latest_data.detected_by=self.robot_name
-            if total_distance < 3 and total_distance > 0.3 and incidence > 0.6:
+            if total_distance < 3.5 and total_distance > 0.3 and incidence > 0.6:
                 self.latest_data.object_detected= object_name
                 self.latest_data.object_position_estimate=Point(obstacle[0], obstacle[1], 0)
                 self.latest_data.object_to_the_left_or_right=leaning
@@ -128,11 +129,9 @@ class DistanceDetector:
                 print('I have detected', object_name)
                 print('I am', self.robot_name)
                 print('------------------------------------------')
-            else:
-                self.object_detected = False
 
     def send_data(self, data):
-        if self.latest_data.object_detected is not None:
+        if self.object_detected:
             self.pub_object_sighted.publish(self.latest_data)
         else:
             self.pub_object_sighted.publish(Object_Sighted())
