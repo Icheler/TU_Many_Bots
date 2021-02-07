@@ -9,7 +9,7 @@ project(tmb_state_control)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
-  actionlin
+  actionlib
   roscpp
   rospy
   std_msgs

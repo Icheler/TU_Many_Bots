@@ -25,13 +25,13 @@ class State_control(object):
         self.goal_detected = False
         self.goal_position = Point()
         self.path_exists = False
-        self.goal_x = rospy.get_param('~goal_x')
-        self.goal_y = rospy.get_param('~goal_y')
+        #self.goal_x = rospy.get_param('~goal_x')
+        #self.goal_y = rospy.get_param('~goal_y')
 
         self.sub_detection = rospy.Subscriber('/tmb_perception/object_sighted', Object_Sighted, self.callback_object_detected)
 
     def callback_object_detected(self, data):
-        if data.object_detected == "robot_blind":
+        if data.object_detected == "blind_robot":
             self.blind_robot_detected = True
             self.blind_robot_position = data.object_position_estimate
         if data.object_detected == "goal":
@@ -39,7 +39,7 @@ class State_control(object):
             self.goal_position = data.object_position_estimate
 
 
-    def movebase_client(self, robot_name, goal_x, goal_y):
+    def movebase_client(self, robot_name, goal_x, goal_y, wait4it):
 
     # Create an action client called "move_base" with action definition file "MoveBaseAction"
         client = actionlib.SimpleActionClient(f'{robot_name}/move_base',MoveBaseAction)
@@ -60,18 +60,22 @@ class State_control(object):
     # Sends the goal to the action server.
         client.send_goal(goal)
     # Waits for the server to finish performing the action.
-        wait = client.wait_for_result()
+        if wait4it:
+            wait = client.wait_for_result()
     # If the result doesn't arrive, assume the Server is not available
-        if not wait:
-            rospy.logerr("Action server not available!")
-            rospy.signal_shutdown("Action server not available!")
+        #if not wait:
+            #rospy.logerr("Action server not available!")
+            #rospy.signal_shutdown("Action server not available!")
     
     def state(self):
+        while not(self.blind_robot_detected and self.goal_detected):
+            pass
         if self.blind_robot_detected and self.goal_detected:
             os.system("rosnode kill /robot1/tmb_explorer")
             os.system("rosnode kill /robot2/tmb_explorer")
+            self.movebase_client('robot2',4.0,0.0,True)
+            self.movebase_client('robot2',self.goal_position.x,self.goal_position.y,False)
             os.system("roslaunch tmb_follow follow_rto.launch")
-            self.movebase_client("robot1", )
 
 if __name__ == '__main__':
     rospy.init_node('state_control')
