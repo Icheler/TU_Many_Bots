@@ -72,16 +72,36 @@ We use a multitude of prebuilt and custom nodes and packages to accomplish our g
 @@ Visualization of packages
 
 ## Overall explanation
+### Visual pipeline
+To perceive the environment we use RGB-D cameras and LiDar sensors. The cameras allow us to classify and position the blind robot and the goal, which we can use to publish the positions on ros topics to use them later on. These topics will be used further on to start the guidance procedure of the robot to guide the blind robot to the goal.
+
+@@ yolo ros stuff
+
+Since we do not do any preprocessing to laser data the data gets processed in a raw form by the chosen SLAM algorithm. 
+
+### SLAM
+For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping package. Configuration files are in the config folder in the @@ package. Gmapping was chosen over the slam-toolbox online async algorithm after evaluating both algorithms in testing. Even after including more cluttering to the maps, the toolbox still had trouble providing twist free maps and it was also getting lost during loop closures. Gmapping has the distinct advantage that our map merge algorithm works best with maps with fixed sizes which are provided by gmapping. With map merging we are able to compute an overall map which gets explored by both robots where we can locate the blind robot in.
+
+### Path Planning
+Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles we use the local costmap. 
+
+After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
+
+### Guiding routine
+@@
 
 ## Visual Pipeline Real
 
 ## Visual Pipeline Mock
 
 ## SLAM
+We use gmapping with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration. 
 
 ## map_merge
+We use the multirobot_map_merge package provided by @@. This allows us to merge maps where the robot start positions are known. In theory the algorithm is also able to compute maps without knowing the start positions of the robot. This did not work in practice but we could overlay with known starting positions anyway. For known start positions the maps get overlayed. This means that deviations in SLAM lead to large deviations in the computed merged map. So a good SLAM is crucial for this to work properly.
 
 ## exploration
+The only adjustments to the algorithm is a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer peroid of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by computing the biggest frontier, a goal is published on the specified topic and then we use move_base to explore the environment. Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach. 
 
 ## move_base
 
@@ -90,5 +110,7 @@ We use a multitude of prebuilt and custom nodes and packages to accomplish our g
 ## following routine
 
 ## robot_state_publisher
+
+# API 
 
 ## Possible further development
