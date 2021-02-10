@@ -35,7 +35,8 @@ class DistanceDetector:
         self.blind_robot_position = np.array([4, -3.5])
         self.computed_blind_robot_position = None
         self.latest_data = Object_Sighted()
-        self.object_detected=True
+        self.goal_detected=False
+        self.blind_robot_detected=False
         goal_x = os.getenv('tmb_start_goal_x')
         goal_y = os.getenv('tmb_start_goal_y')
         self.goal_position=np.array([float(goal_x), float(goal_y)])
@@ -129,9 +130,18 @@ class DistanceDetector:
                 print('I have detected', object_name)
                 print('I am', self.robot_name)
                 print('------------------------------------------')
+                if index == 0:
+                    self.goal_detected=False
+                else:
+                    self.blind_robot_detected=False
+            else:
+                if index == 0:
+                    self.goal_detected=False
+                else:
+                    self.blind_robot_detected=False
 
     def send_data(self, data):
-        if self.object_detected:
+        if self.goal_detected or self.blind_robot_detected:
             self.pub_object_sighted.publish(self.latest_data)
         else:
             self.pub_object_sighted.publish(Object_Sighted())
