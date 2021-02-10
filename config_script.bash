@@ -42,15 +42,16 @@ then
   export tmb_start_robot1_x="0.0"
   export tmb_start_robot1_y="0.0"
   export tmb_start_robot1_z="0.0"
-  export tmb_start_robot1_yaw="0.0"
+  export tmb_start_robot1_yaw="0"
 
   export tmb_start_robot2_x="1.0"
   export tmb_start_robot2_y="0.0"
   export tmb_start_robot2_z="0.0"
   export tmb_start_robot2_yaw="0"
 
-  export tmb_start_robot_blind_x="3.2"
-  export tmb_start_robot_blind_y="-3.2"
+  export tmb_start_robot_blind_x="-7.0"
+  export tmb_start_robot_blind_y="0.0"
+
   export tmb_start_robot_blind_z="0.0"
   export tmb_start_robot_blind_yaw="5.7"
 
