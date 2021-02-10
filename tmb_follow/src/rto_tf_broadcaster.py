@@ -4,18 +4,18 @@ import rospy
 
 import tf
 from geometry_msgs.msg import Pose
-from nav_msgs.msg import Odometry
+from tmb_messages.msg import Computed_Pose
 
 
 
 def handle_robot_pose(msg, robotname):
     br = tf.TransformBroadcaster()
     quaternion = (
-        msg.pose.pose.orientation.x,
-        msg.pose.pose.orientation.y,
-        msg.pose.pose.orientation.z,
-        msg.pose.pose.orientation.w)
-    br.sendTransform((msg.pose.pose.position.x, msg.pose.pose.position.y, 0),
+        msg.quaternion_x,
+        msg.quaternion_y,
+        msg.quaternion_z,
+        msg.quaternion_w)
+    br.sendTransform((msg.x, msg.y, 0),
                      quaternion,
                      rospy.Time.now(),
                      robotname,
@@ -23,9 +23,8 @@ def handle_robot_pose(msg, robotname):
 
 if __name__ == '__main__':
     rospy.init_node('rto_tf_broadcaster')
-    robotname = rospy.get_param('~robot')
-    rospy.Subscriber('/%s/odom' % robotname,
-                     Odometry,
+    robot_name = rospy.get_param('~robot')
+    rospy.Subscriber(f'/{robot_name}/tmb_computed_pose',  Computed_Pose,
                      handle_robot_pose,
-                     robotname)
+                     robot_name)
     rospy.spin()
