@@ -1,0 +1,16 @@
+<launch>
+
+
+  <node name="rto1_tf_broadcaster" pkg="tmb_follow" type="rto_tf_broadcaster.py" respawn="false" output="screen" >
+    <param name="robot" type="string" value="robot2" />
+  </node>
+  <node name="rto2_tf_broadcaster" pkg="tmb_follow" type="rto_tf_broadcaster.py" respawn="false" output="screen" >
+    <param name="robot" type="string" value="robot_blind" />
+  </node>
+  <node name="rto3_tf_broadcaster" pkg="tmb_follow" type="rto_tf_broadcaster.py" respawn="false" output="screen" >
+    <param name="robot" type="string" value="robot1" />
+  </node>
+  <node name="rto_pointer" pkg="tmb_follow" type="rto_tf_listener.py" respawn="false" output="screen" >
+  </node>
+
+</launch>
