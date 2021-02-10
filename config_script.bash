@@ -49,8 +49,8 @@ then
   export tmb_start_robot2_z="0.0"
   export tmb_start_robot2_yaw="0"
 
-  export tmb_start_robot_blind_x="3.0"
-  export tmb_start_robot_blind_y="-4.0"
+  export tmb_start_robot_blind_x="3.2"
+  export tmb_start_robot_blind_y="-3.2"
   export tmb_start_robot_blind_z="0.0"
   export tmb_start_robot_blind_yaw="5.7"
 
