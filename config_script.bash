@@ -179,4 +179,12 @@ then
   export tmb_start_goal_x="2"
   export tmb_start_goal_y="2.5"
   export tmb_start_goal_yaw="0"
+
+  export tmb_start_robot_1_map_transform_x="0"
+  export tmb_start_robot_1_map_transform_y="0"
+  export tmb_start_robot_1_map_transform_z="0"
+
+  export tmb_start_robot_2_map_transform_x="0"
+  export tmb_start_robot_2_map_transform_y="0"
+  export tmb_start_robot_2_map_transform_z="0"
 fi
