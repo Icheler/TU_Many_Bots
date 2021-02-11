@@ -58,6 +58,14 @@ then
   export tmb_start_goal_x="0.60339"
   export tmb_start_goal_y="6.06"
   export tmb_start_goal_yaw="0"
+
+  export tmb_start_robot_1_map_transform_x="0"
+  export tmb_start_robot_1_map_transform_y="0"
+  export tmb_start_robot_1_map_transform_z="0"
+
+  export tmb_start_robot_2_map_transform_x="0"
+  export tmb_start_robot_2_map_transform_y="0"
+  export tmb_start_robot_2_map_transform_z="0"
 fi
 if [ $world = "maze" ]
 then
@@ -142,4 +150,12 @@ then
   export tmb_start_goal_x="4.04245"
   export tmb_start_goal_y="-9.42855"
   export tmb_start_goal_yaw="0"
+
+  export tmb_start_robot_1_map_transform_x="0"
+  export tmb_start_robot_1_map_transform_y="0"
+  export tmb_start_robot_1_map_transform_z="0"
+
+  export tmb_start_robot_2_map_transform_x="0"
+  export tmb_start_robot_2_map_transform_y="0"
+  export tmb_start_robot_2_map_transform_z="0"
 fi
