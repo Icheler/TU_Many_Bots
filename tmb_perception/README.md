@@ -53,6 +53,8 @@ Other libraries in this stack rely on OpenCV 4.2,
 until a better solution is found to target this in each package,
 ensuring it all build correctly takes a few steps.
 - cd <catkinworkspace>
+- cd src
+- git clone git@github.com:ros-perception/vision_opencv.git
 - sudo apt-get purge &#42;opencv&#42;
 - catkin build darknet_ros
 - sudo apt install ros-noetic-desktop-full
