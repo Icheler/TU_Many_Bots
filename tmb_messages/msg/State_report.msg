@@ -1,0 +1,5 @@
+string goal_detected
+string blind_robot_detected
+string robots_in_position
+string follow_procedure_started
+string robots_reached_the_goal

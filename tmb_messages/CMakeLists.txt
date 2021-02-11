@@ -12,6 +12,7 @@ add_message_files(
   FILES
   Object_Sighted.msg
   Bounding_Box_Interpretation.msg
+  State_report.msg
 )
 
 generate_messages(
