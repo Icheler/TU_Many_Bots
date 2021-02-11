@@ -58,11 +58,13 @@ def normalize(x):
     return x / np.sqrt(np.sum(x**2))
 
 
-def build_computed_pose(pose):
+def build_computed_pose(pose, with_quaternion=True):
     computed = Computed_Pose()
     computed.x = pose.position.x
     computed.y = pose.position.y
     computed.yaw = quat_to_yaw(pose)
+    if not with_quaternion:
+        return computed
     computed.quaternion_x = pose.orientation.x
     computed.quaternion_y = pose.orientation.y
     computed.quaternion_z = pose.orientation.z
@@ -74,10 +76,11 @@ def rotate_vector(angle, input):
     rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
     return  np.matmul(rotation_matrix, input)
 
-POSITION_AMOUNT = 10
-VELOCITY_AMOUNT = 10
-DISPLACEMENT_AMOUNT = 10
-
+POSITION_AMOUNT = 5
+VELOCITY_AMOUNT = 5
+DISPLACEMENT_AMOUNT = 5
+VECTOR_TYPE = np.array([0.0, 0.0])
+ROBOT_TO_COMPUTE = 'robot1'
 
 class PoseResolver:
     '''
@@ -86,43 +89,57 @@ class PoseResolver:
     '''
     def __init__(self):
         rospack = rospkg.RosPack()
-
+        self.use_computed_yaw = os.getenv('tmb_with_predicting_yaw')
         # Initialize Publishers
         self.pub_robot_1 = rospy.Publisher('/robot1/tmb_computed_pose', Computed_Pose, queue_size=10)
         self.pub_robot_2 = rospy.Publisher('/robot2/tmb_computed_pose', Computed_Pose, queue_size=10)
         self.pub_robot_blind = rospy.Publisher('/robot_blind/tmb_computed_pose', Computed_Pose, queue_size=10)
 
-
         # Initialize Subscribers
-        self.sub_robot_1_pose = rospy.Subscriber('/robot1/pose', Pose, self.get_pose('robot1'))
-        #self.sub_robot_2_pose = rospy.Subscriber('/robot2/pose', Pose, self.get_pose('robot2'))
-        #self.sub_robot_blind_pose = rospy.Subscriber('/robot_blind/pose', Pose, self.get_pose('robot_blind'))
-        self.sub_robot_1_velocitry = rospy.Subscriber('/robot1/cmd_vel', Twist, self.get_robot_velocity('robot1'))
-        self.position_type = np.array([0, 0])
-        self.velocity_array = [0,0,0,0,0,0,0,0,0,0]
-        self.positions_array = [0,0,0,0,0,0,0,0,0,0]
-        self.displacement_array = [0,0,0,0,0,0,0,0,0,0]
+        rospy.Subscriber('/robot1/odom', Odometry, self.get_pose('robot1'))
+        rospy.Subscriber('/robot2/odom', Odometry, self.get_pose('robot2'))
+        rospy.Subscriber('/robot_blind/odom', Odometry, self.get_pose('robot_blind'))
+
+        rospy.Subscriber(f'/{ROBOT_TO_COMPUTE}/cmd_vel', Twist, self.get_robot_velocity(ROBOT_TO_COMPUTE))
+
+        self.velocity_array = np.tile(VECTOR_TYPE, (VELOCITY_AMOUNT, 1))
+        self.positions_array = np.tile(VECTOR_TYPE, (POSITION_AMOUNT, 1))
+        self.displacement_array =np.zeros(DISPLACEMENT_AMOUNT)
         self.positions_received_count = 0
         self.velocity_received_count = 0
-        self.computed_velocity = np.array([0, 0])
-        self.computed_translation = np.array([0, 0])
+        self.computed_velocity = VECTOR_TYPE
+        self.computed_translation = VECTOR_TYPE
         self.last_velocity_time = None
-        self.predicted_yaw = 0
+        self.computed_yaw = 0
         self.computed_bearing = np.array([1,0])
 
     def get_pose(self, robot_name):
-        def pos_func(pose):
-            computed_pose = build_computed_pose(pose)
-            self.update_positions_array(pose)
-            #print('self.positions_array', self.positions_array)
-            if (robot_name == 'robot1'):
-                self.pub_robot_1.publish(computed_pose)
-            elif (robot_name =='robot2'):
-                self.pub_robot_2.publish(computed_pose)
+        def pos_func(odom):
+            pose = odom.pose.pose
+            if (robot_name == ROBOT_TO_COMPUTE):
+
+                self.update_positions_array(pose)
+                computed_pose = build_computed_pose(pose, False)
+                print('-----------------------------------------------------------------')
+                print('computed yaw is', self.computed_yaw)
+                print('acttual yaw is', computed_pose.yaw)
+                print('-----------------------------------------------------------------')
+                if self.use_computed_yaw:
+                    computed_pose.yaw = self.computed_yaw
+                self.publish_computed(robot_name, computed_pose)
             else:
-                self.pub_robot_blind.publish(computed_pose)
+                computed_pose = build_computed_pose(pose)
+                self.publish_computed(robot_name, computed_pose)
+
         return pos_func
 
+    def publish_computed(self, robot_name, computed_pose):
+        if robot_name == 'robot1':
+            self.pub_robot_1.publish(computed_pose)
+        if robot_name == 'robot2':
+            self.pub_robot_2.publish(computed_pose)
+        if robot_name == 'robot_blind':
+            self.pub_robot_blind.publish(computed_pose)
 
     def update_positions_array(self, pose):
         self.positions_received_count += 1
@@ -138,14 +155,9 @@ class PoseResolver:
         seconds = time()
 
         if self.last_velocity_time is not None:
-            # angular velocity should be handled seperately, as rotation is possible without translation.
             difference = seconds - self.last_velocity_time
-
             angular_displacement = data.angular.z * difference
-            #print('angular displacement', angular_displacement)
-            #print('seconds', seconds)
             self.displacement_array[self.velocity_received_count % DISPLACEMENT_AMOUNT] = angular_displacement
-
         self.last_velocity_time = seconds
         #normal_linear_velocities = normalize(linear_velocities)
         # perhaps we could rotate these by the angular ?
@@ -160,7 +172,6 @@ class PoseResolver:
     def get_robot_velocity(self, robot_name):
         def velocity_func(velocity):
             self.update_velocity_array(velocity)
-            print('-----------------------')
 
         return velocity_func
 
@@ -174,8 +185,7 @@ class PoseResolver:
             from x locations we can get x - 1 translations.
             start at the latest insertion (self.positions_received_count) and propogate backwards
         '''
-        # todo standarize this.
-        translations = [0,0,0,0,0,0,0,0,0]
+        translations = np.tile(VECTOR_TYPE, (POSITION_AMOUNT - 1, 1))
         start_at = self.positions_received_count
         for index, position in enumerate(self.positions_array):
 
@@ -185,16 +195,15 @@ class PoseResolver:
             previous = (start_at - index - 1) % POSITION_AMOUNT
             translations[index] = self.positions_array[current] - self.positions_array[previous]
 
-        self.x = 0.0
-        self.y = 0.0
+        x = 0.0
+        y = 0.0
         for translation in translations:
-            self.x = translation[0] + self.x
-            self.y = translation[1] + self.y
+            x += translation[0]
+            y += translation[1]
 
-        movement = np.array([self.x, self.y])
+        movement = np.array([x, y])
         unit_movement = normalize(movement)
         self.computed_translation = unit_movement
-        #print('unit movement', unit_movement)
 
     def get_velocity_average(self):
         '''
@@ -209,12 +218,10 @@ class PoseResolver:
             y += velocity[1]
         velocity = np.array([x, y])
         average_velocity = normalize(velocity)
-        print('average_velocity', average_velocity)
         self.computed_velocity = average_velocity
         self.predict_yaw()
 
     def predict_yaw(self):
-        #print('predicting yaw')
         difference = np.dot(self.computed_translation, self.computed_velocity)
         orientation = np.cross(self.computed_translation, self.computed_velocity)
         # at this point we should have
@@ -222,38 +229,19 @@ class PoseResolver:
         # computer velocity (unit vector)
         # computed bearing (unit vector)
         # difference is 1 to -1 -> 0 to pi
-        print('difference', difference)
         angular_difference = (difference + 1 ) * 3.145 / 2
         sign = 1 if (orientation) > 0 else -1
         with_sign = angular_difference * sign
         translate_result = 0 if math.isnan(with_sign) else with_sign
-        yaw_average = np.sum(self.displacement_array) / 10.0
+        yaw_average = np.sum(self.displacement_array) / 5.0
         yaw_result = 0 if math.isnan(yaw_average) else yaw_average
         with_yaw = translate_result + yaw_average
-        print('with yaw', with_yaw)
-        current_estimate = rotate_vector(with_yaw + 3.14 / 2 , np.array([0,1]))
+        current_estimate = rotate_vector(with_yaw + 3.14, np.array([1,0]))
         if (math.isnan(current_estimate[0]) or math.isnan(current_estimate[1])):
             pass
         else:
-            self.computed_bearing = normalize(self.computed_bearing + current_estimate)
-
-        print('--------------------------------------------------------------------')
-        print('self.computed_translation', self.computed_translation)
-        print('self.computed_velocity', self.computed_velocity)
-        print('angular_difference', angular_difference)
-        print('with sign', with_sign)
-        #print('yaw average', yaw_average)
-        #print('with yaw', with_yaw)
-        #print('current_estimate', current_estimate)
-        #print('weighted_sum', weighted_sum)
-        print('--------------------------------------------------------------------')
-        print('--------------------------------------------------------------------')
-        print('computer', self.computed_bearing )
-        print('yaw', np.arctan2(self.computed_bearing[1], self.computed_bearing[0]))
-        print('--------------------------------------------------------------------')
-        # orientation (just take the sign)
-        # a bearing estimate
-        # this gives us a) a current bearing estimate
+            self.computed_bearing = normalize(self.computed_bearing + 3 * current_estimate)
+        self.computed_yaw = np.arctan2(self.computed_bearing[1], self.computed_bearing[0])
 
 
     def run(self):
