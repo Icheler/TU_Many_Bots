@@ -4,14 +4,48 @@ import rospy
 import rospkg
 import numpy as np
 import os
+import math
 
-
-from geometry_msgs.msg import Point, Pose, Quaternion
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist
 from std_msgs.msg import Bool, String, Int8
 from nav_msgs.msg import Odometry
 from tmb_messages.msg import Computed_Pose
 from darknet_ros_msgs.msg import BoundingBoxes
 from sensor_msgs.msg import LaserScan
+from time import time
+
+'''
+    Resolving the yaw
+
+    Given a succession of position changed and input velocities,
+    attempt to predict the yaw.
+    Considerations:
+        First. can we assume that we robot always goes in the forward facing direction?
+        maybe use that as a prior.
+
+        Second. how many position + velocities should we use (some degree of filtering is useful)
+        lets try the last three.
+
+        Third. Consider also that angular velocity plays a part. an x, y motion might not sufficiently be
+        map-able to the x, y velocities. Given a suitable dynamic model, this, too, could be taken into account.
+
+    Application:
+        Have: a unit vector of the current bearing estimate.
+
+        Then, convert x, y velocity into unit vector.
+        - This is the direction relative motion (which incorporates yaw)
+        Second, computer the change in position, as a unit vector.
+        - This is the absolute motion.
+
+        The dot product between the relative motion and absolute motion
+        is, be definition, the rotation of the relative coordinate frame.
+
+        Finally, created a new yaw weighted on current estimate and previous.
+
+
+        Critically forgotten, note that angular rotation is possible even without visible movement. so lets annul any sense of angualar
+
+'''
 
 def quat_to_yaw(pose):
     x = pose.orientation.x
@@ -19,6 +53,31 @@ def quat_to_yaw(pose):
     z = pose.orientation.z
     w = pose.orientation.w
     return np.arctan2(2.0*(w*z), w*w - z*z);
+
+def normalize(x):
+    return x / np.sqrt(np.sum(x**2))
+
+
+def build_computed_pose(pose):
+    computed = Computed_Pose()
+    computed.x = pose.position.x
+    computed.y = pose.position.y
+    computed.yaw = quat_to_yaw(pose)
+    computed.quaternion_x = pose.orientation.x
+    computed.quaternion_y = pose.orientation.y
+    computed.quaternion_z = pose.orientation.z
+    computed.quaternion_w = pose.orientation.w
+    return computed
+
+
+def rotate_vector(angle, input):
+    rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    return  np.matmul(rotation_matrix, input)
+
+POSITION_AMOUNT = 10
+VELOCITY_AMOUNT = 10
+DISPLACEMENT_AMOUNT = 10
+
 
 class PoseResolver:
     '''
@@ -33,30 +92,168 @@ class PoseResolver:
         self.pub_robot_2 = rospy.Publisher('/robot2/tmb_computed_pose', Computed_Pose, queue_size=10)
         self.pub_robot_blind = rospy.Publisher('/robot_blind/tmb_computed_pose', Computed_Pose, queue_size=10)
 
+
         # Initialize Subscribers
         self.sub_robot_1_pose = rospy.Subscriber('/robot1/pose', Pose, self.get_pose('robot1'))
-        self.sub_robot_2_pose = rospy.Subscriber('/robot2/pose', Pose, self.get_pose('robot2'))
-        self.sub_robot_blind_pose = rospy.Subscriber('/robot_blind/pose', Pose, self.get_pose('robot_blind'))
-
+        #self.sub_robot_2_pose = rospy.Subscriber('/robot2/pose', Pose, self.get_pose('robot2'))
+        #self.sub_robot_blind_pose = rospy.Subscriber('/robot_blind/pose', Pose, self.get_pose('robot_blind'))
+        self.sub_robot_1_velocitry = rospy.Subscriber('/robot1/cmd_vel', Twist, self.get_robot_velocity('robot1'))
+        self.position_type = np.array([0, 0])
+        self.velocity_array = [0,0,0,0,0,0,0,0,0,0]
+        self.positions_array = [0,0,0,0,0,0,0,0,0,0]
+        self.displacement_array = [0,0,0,0,0,0,0,0,0,0]
+        self.positions_received_count = 0
+        self.velocity_received_count = 0
+        self.computed_velocity = np.array([0, 0])
+        self.computed_translation = np.array([0, 0])
+        self.last_velocity_time = None
+        self.predicted_yaw = 0
+        self.computed_bearing = np.array([1,0])
 
     def get_pose(self, robot_name):
         def pos_func(pose):
-            computed = Computed_Pose()
-            computed.x = pose.position.x
-            computed.y = pose.position.y
-            computed.yaw = quat_to_yaw(pose)
-            computed.quaternion_x = pose.orientation.x
-            computed.quaternion_y = pose.orientation.y
-            computed.quaternion_z = pose.orientation.z
-            computed.quaternion_w = pose.orientation.w
+            computed_pose = build_computed_pose(pose)
+            self.update_positions_array(pose)
+            #print('self.positions_array', self.positions_array)
             if (robot_name == 'robot1'):
-                self.pub_robot_1.publish(computed)
+                self.pub_robot_1.publish(computed_pose)
             elif (robot_name =='robot2'):
-                self.pub_robot_2.publish(computed)
+                self.pub_robot_2.publish(computed_pose)
             else:
-                self.pub_robot_blind.publish(computed)
+                self.pub_robot_blind.publish(computed_pose)
         return pos_func
 
+
+    def update_positions_array(self, pose):
+        self.positions_received_count += 1
+        self.positions_array[self.positions_received_count % POSITION_AMOUNT] = np.array([pose.position.x, pose.position.y])
+        self.get_movement_direction()
+
+
+    def update_velocity_array(self, data):
+        '''
+            Consider also using the angular velocity to perturb the velocities.
+        '''
+        linear_velocities = np.array([data.linear.x, data.linear.y])
+        seconds = time()
+
+        if self.last_velocity_time is not None:
+            # angular velocity should be handled seperately, as rotation is possible without translation.
+            difference = seconds - self.last_velocity_time
+
+            angular_displacement = data.angular.z * difference
+            #print('angular displacement', angular_displacement)
+            #print('seconds', seconds)
+            self.displacement_array[self.velocity_received_count % DISPLACEMENT_AMOUNT] = angular_displacement
+
+        self.last_velocity_time = seconds
+        #normal_linear_velocities = normalize(linear_velocities)
+        # perhaps we could rotate these by the angular ?
+        # for this to make sense we need the sampling rate. ie, angular displacement = velocity / hz
+        #rotated_vector = rotate_vector(angular_displacement, normal_linear_velocities)
+        #
+        self.velocity_received_count += 1
+        self.velocity_array[self.velocity_received_count % VELOCITY_AMOUNT] = linear_velocities
+        self.get_velocity_average()
+
+
+    def get_robot_velocity(self, robot_name):
+        def velocity_func(velocity):
+            self.update_velocity_array(velocity)
+            print('-----------------------')
+
+        return velocity_func
+
+
+    def get_movement_direction(self):
+        '''
+            Use the array of saved positions to determine
+            a short-term trajectory unit vector
+
+            Where positions array is a list of np.array([position.x, position.y])
+            from x locations we can get x - 1 translations.
+            start at the latest insertion (self.positions_received_count) and propogate backwards
+        '''
+        # todo standarize this.
+        translations = [0,0,0,0,0,0,0,0,0]
+        start_at = self.positions_received_count
+        for index, position in enumerate(self.positions_array):
+
+            if index == POSITION_AMOUNT - 1:
+                continue
+            current = (start_at - index) % POSITION_AMOUNT
+            previous = (start_at - index - 1) % POSITION_AMOUNT
+            translations[index] = self.positions_array[current] - self.positions_array[previous]
+
+        self.x = 0.0
+        self.y = 0.0
+        for translation in translations:
+            self.x = translation[0] + self.x
+            self.y = translation[1] + self.y
+
+        movement = np.array([self.x, self.y])
+        unit_movement = normalize(movement)
+        self.computed_translation = unit_movement
+        #print('unit movement', unit_movement)
+
+    def get_velocity_average(self):
+        '''
+            Use the array of saved velocities to determine
+            a short-term velocity average
+
+        '''
+        x = 0.0
+        y = 0.0
+        for velocity in self.velocity_array:
+            x += velocity[0]
+            y += velocity[1]
+        velocity = np.array([x, y])
+        average_velocity = normalize(velocity)
+        print('average_velocity', average_velocity)
+        self.computed_velocity = average_velocity
+        self.predict_yaw()
+
+    def predict_yaw(self):
+        #print('predicting yaw')
+        difference = np.dot(self.computed_translation, self.computed_velocity)
+        orientation = np.cross(self.computed_translation, self.computed_velocity)
+        # at this point we should have
+        # computer translation (unit vector)
+        # computer velocity (unit vector)
+        # computed bearing (unit vector)
+        # difference is 1 to -1 -> 0 to pi
+        print('difference', difference)
+        angular_difference = (difference + 1 ) * 3.145 / 2
+        sign = 1 if (orientation) > 0 else -1
+        with_sign = angular_difference * sign
+        translate_result = 0 if math.isnan(with_sign) else with_sign
+        yaw_average = np.sum(self.displacement_array) / 10.0
+        yaw_result = 0 if math.isnan(yaw_average) else yaw_average
+        with_yaw = translate_result + yaw_average
+        print('with yaw', with_yaw)
+        current_estimate = rotate_vector(with_yaw + 3.14 / 2 , np.array([0,1]))
+        if (math.isnan(current_estimate[0]) or math.isnan(current_estimate[1])):
+            pass
+        else:
+            self.computed_bearing = normalize(self.computed_bearing + current_estimate)
+
+        print('--------------------------------------------------------------------')
+        print('self.computed_translation', self.computed_translation)
+        print('self.computed_velocity', self.computed_velocity)
+        print('angular_difference', angular_difference)
+        print('with sign', with_sign)
+        #print('yaw average', yaw_average)
+        #print('with yaw', with_yaw)
+        #print('current_estimate', current_estimate)
+        #print('weighted_sum', weighted_sum)
+        print('--------------------------------------------------------------------')
+        print('--------------------------------------------------------------------')
+        print('computer', self.computed_bearing )
+        print('yaw', np.arctan2(self.computed_bearing[1], self.computed_bearing[0]))
+        print('--------------------------------------------------------------------')
+        # orientation (just take the sign)
+        # a bearing estimate
+        # this gives us a) a current bearing estimate
 
 
     def run(self):
