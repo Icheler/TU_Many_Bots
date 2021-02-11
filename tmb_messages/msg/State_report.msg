@@ -1,5 +1,5 @@
-string goal_detected
-string blind_robot_detected
-string robots_in_position
-string follow_procedure_started
-string robots_reached_the_goal
+bool goal_detected
+bool blind_robot_detected
+bool robots_in_position
+bool follow_procedure_started
+bool robots_reached_the_goal

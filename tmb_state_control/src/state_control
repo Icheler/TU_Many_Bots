@@ -50,12 +50,12 @@ class State_control(object):
         if data.object_detected == "blind_robot":
             self.blind_robot_detected = True
             self.blind_robot_position = data.object_position_estimate
-            self.state_report.blind_robot_detected = "Ture"
+            self.state_report.blind_robot_detected = True
         if data.object_detected == "goal":
             self.goal_detected = True
             self.goal_position = data.object_position_estimate
             self.goal_detected_by = data.detected_by
-            self.state_report.goal_detected = "True"
+            self.state_report.goal_detected = True
         self.pub_state_report.publish(self.state_report)
 
     def movebase_client(self, robot_name, goal_x, goal_y, wait4it):
@@ -88,31 +88,6 @@ class State_control(object):
         if wait4it:
             wait = client.wait_for_result()
 
-            """
-    def closest_to_blind_robot(self):
-
-        if self.leader == "robot1":
-            self.leader_pose = self.robot1_pose
-            self.follower_pose = self.robot2_pose
-        else:
-            self.leader_pose = self.robot2_pose
-            self.follower_pose = self.robot1_pose
-        self.dist_leader_blind_robot = math.sqrt(((self.leader_pose.x - self.blind_robot_position.x)**2)+((self.leader_pose.y - self.blind_robot_position.y)**2))
-        self.dist_follower_blind_robot = math.sqrt(((self.follower_pose.x - self.blind_robot_position.x)**2)+((self.follower_pose.y - self.blind_robot_position.y)**2))
-        print(self.dist_leader_blind_robot)
-        print(self.dist_follower_blind_robot)
-        if self.dist_leader_blind_robot < 1.0 :
-            resp = self.service_1(False) 
-        else:
-            resp = self.service_1(True)
-
-
-        
-        if self.dist_robot1_blind_robot > self.dist_robot2_blind_robot:
-            return "robot1"
-        else:
-            return "robot2"
-        """
     def choose_leader(self):
         
         """
@@ -144,7 +119,7 @@ class State_control(object):
             #sends robots close to the blind robot
             self.movebase_client(self.follower,self.blind_robot_position.x-1,self.blind_robot_position.y+2,False)
             self.movebase_client(self.leader,self.blind_robot_position.x+1,self.blind_robot_position.y+2,True)
-            self.state_report.robots_in_position = "True"
+            self.state_report.robots_in_position = True
 
             #set leader move_base goal to the Goal
             self.movebase_client(self.leader,self.goal_position.x,self.goal_position.y,False)
@@ -155,6 +130,7 @@ class State_control(object):
             #blind robot starts following the leader
             req = service_lead()
             print(req)
+            self.state_report.follow_procedure_started = True
 
             #requests the follow_blind service 
             rospy.wait_for_service('follow_blind')
@@ -162,16 +138,6 @@ class State_control(object):
             #follower robot start following blind robot
             req = service_follow()
             print(req)
-            """
-            rospy.wait_for_service('is_safe_blind')
-            rospy.wait_for_service('is_safe_corrective')
-            self.service_1 = rospy.ServiceProxy('is_safe_blind', SetBool)
-            self.service_2 = rospy.ServiceProxy('is_safe_corrective', SetBool)
-
-            while not(self.leader_pose.x == self.goal_position.x and self.leader_pose.y == self.goal_position.y):
-                print("###########################distances")
-                self.closest_to_blind_robot()
-            """
 
 if __name__ == '__main__':
     rospy.init_node('state_control')
