@@ -1,0 +1,29 @@
+<launch>
+    <group ns="robot1/map_merge/">
+        <param name="init_pose_x" value=" $(env tmb_start_robot1_x)"/>
+        <param name="init_pose_y" value=" $(env tmb_start_robot1_y)"/>
+        <param name="init_pose_z" value=" $(env tmb_start_robot1_z)"/>
+        <param name="init_pose_yaw" value=" $(env tmb_start_robot1_yaw)"/>
+    </group>
+
+    <group ns="robot2/map_merge" if="$(env tmb_start_both)">
+        <param name="init_pose_x" value=" $(env tmb_start_robot2_x)"/>
+        <param name="init_pose_y" value=" $(env tmb_start_robot2_y)"/>
+        <param name="init_pose_z" value=" $(env tmb_start_robot2_z)"/>
+        <param name="init_pose_yaw" value=" $(env tmb_start_robot2_yaw)"/>
+    </group>
+
+    <node pkg="multirobot_map_merge" type="map_merge" name="tmb_merger" respawn="False">
+        <param name="merged_map_topic" value="map"/>
+        <param name="world_frame" value="map"/>
+        <param name="known_init_poses" value="True"/>
+        <param name="merging_rate" value="4.0"/>
+        <param name="discovery_rate" value="0.1"/>
+        <param name="estimation_rate" value="1"/>
+        <param name="estimation_confidence" value="1.5"/>
+    </node>
+
+    <node pkg="tf" type="static_transform_publisher" name="world_to_robot1_tf_broadcaster"  args="$(env tmb_start_robot_1_map_transform_x) $(env tmb_start_robot_1_map_transform_y) $(env tmb_start_robot_1_map_transform_z) 0 0 0 1 /map /robot1/map 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="world_to_robot2_tf_broadcaster" args="$(env tmb_start_robot_2_map_transform_x) $(env tmb_start_robot_2_map_transform_y) $(env tmb_start_robot_1_map_transform_z) 0 0 0 1 /map /robot2/map 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="world_to_robot_blind_tf_broadcaster" args="0 0 0 0 0 1 /map /robot_blind/map 100"/>
+</launch>

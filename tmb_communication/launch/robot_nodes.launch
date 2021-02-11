@@ -1,0 +1,35 @@
+<launch>
+   <arg name="robot_name" />
+   <arg name="node_start_delay" default="1.0" />
+    <group ns="$(arg robot_name)">
+        <node pkg="gmapping" type="slam_gmapping" name="gmapping" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' ">
+            <param name="base_frame" value="/$(arg robot_name)/base_link"/>
+            <param name="odom_frame" value="/$(arg robot_name)/odom"/>
+            <param name="map_frame" value="/$(arg robot_name)/map"/>
+            <rosparam file="$(find tmb_communication)/config/gmapping_config.yaml"/>
+        </node>
+        <node pkg="explore_lite" type="explore" name="tmb_explorer">
+            <param name="robot_base_frame" value="/$(arg robot_name)/base_link"/>
+            <param name="costmap_topic" value="/$(arg robot_name)/map"/>
+            <param name="costmap_updates_topic" value="/$(arg robot_name)/map_updates" if="$(eval robot_name == 'robot2')"/>
+            <param name="visualize" value="true"/>
+            <param name="planner_frequency" value="0.33"/>
+            <param name="progress_timeout" value="30.0"/>
+            <param name="potential_scale" value="3.0"/>
+            <param name="orientation_scale" value="0.0"/>
+            <param name="gain_scale" value="1.0"/>
+            <param name="transform_tolerance" value="0.3"/>
+            <param name="min_frontier_size" value="0.1"/>
+        </node>
+        <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+            <rosparam file="$(find tmb_communication)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+            <rosparam file="$(find tmb_communication)/config/costmap_params.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/base_local_planner_params_normal.yaml" command="load" />
+            <rosparam file="$(find tmb_communication)/config/$(arg robot_name)/costmap_robot_params.yaml" command="load" />
+            <!-- TODO: Probably exchange base local planner -->
+            <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS" />
+            <param name="controller_frequency" value="15.0" />
+        </node>
+    </group>
+</launch>

@@ -1,0 +1,6 @@
+string detected_by
+string object_detected
+string object_to_the_left_or_right
+float32 distance
+float32 incidence
+geometry_msgs/Point object_position_estimate

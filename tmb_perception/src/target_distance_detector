@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+
+import rospy
+import rospkg
+import numpy as np
+import os
+
+from geometry_msgs.msg import Point, Pose, Quaternion
+from std_msgs.msg import Bool, String, Int8
+from nav_msgs.msg import Odometry
+from tmb_messages.msg import Object_Sighted
+from tmb_messages.msg import Bounding_Box_Interpretation
+
+CAMERA_RANGE_SPAN=1.15
+
+def normalize(x):
+    return x / np.sqrt(np.sum(x**2))
+
+class DistanceDetector:
+
+    def __init__(self):
+        rospack = rospkg.RosPack()
+        self.robot_name=rospy.get_param("~robot_name", "robot1")
+        print('the robot name is!', self.robot_name)
+        # Initialize Publishers
+        self.pub_object_sighted = rospy.Publisher('/tmb_perception/object_sighted', Object_Sighted, queue_size=10)
+
+        # Initialize Subscribers
+        self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/pose', Pose, self.get_pose)
+        self.blind_robot_pose = rospy.Subscriber('/robot_blind/pose', Pose, self.get_blind_robot)
+        rospy.Subscriber('/tmb_perception/bounding_box_interpretation', Bounding_Box_Interpretation, self.get_bounding_box_interpretation)
+
+
+
+        self.blind_robot_position = np.array([4, -3.5])
+        self.computed_blind_robot_position = None
+        self.latest_data = Object_Sighted()
+        self.goal_detected=False
+        self.blind_robot_detected=False
+        goal_x = os.getenv('tmb_start_goal_x')
+        goal_y = os.getenv('tmb_start_goal_y')
+        self.goal_position=np.array([float(goal_x), float(goal_y)])
+        self.robot_bearing=None
+        self.robot_position=None
+
+    def get_bounding_box_interpretation(self, data):
+        '''
+        Given a bounding box interpretation, attempt to determing the position of the robot.
+            Assuming the camera feed spans 60degrees (1 rad)
+            Note. consider setting the span as a constant.
+            determing the unit vector in the direction of the detected object
+            from the given camera_center_position (0, 1)
+            Data type
+            string detected_by
+            string object_detected
+            float32 distance
+            float32 camera_center_position
+        '''
+
+        print('--------------------------------')
+        if data.detected_by != self.robot_name:
+            print('different!', data.detected_by)
+            print('self.robot_name', self.robot_name)
+            return
+        # change from range of (0, 1) to (-1, 1)
+        normalized_centerer = (data.camera_center_position - 0.5) * 2.0
+        # convert into radial angle
+        angle = normalized_centerer * (CAMERA_RANGE_SPAN / 2.0)
+        rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+        rotated_bearing = np.matmul(rotation_matrix, self.robot_bearing)
+        total_translation = data.distance * rotated_bearing
+
+        computed_position = self.robot_position + total_translation
+        print('rounded', np.around(computed_position, 3))
+        print('-----------------------------------------------------------')
+
+
+
+    def get_blind_robot(self, point):
+        print('blind robot position', point)
+        pos = point.position
+        self.blind_robot_position = np.array([pos.x, pos.y])
+
+    def get_pose(self, data):
+        pose = data.orientation
+        pos = data.position
+        yaw = np.arctan2(2.0*(pose.w*pose.z), pose.w*pose.w - pose.z*pose.z);
+        # Where bearing is a unit vector depicting the direction the
+        # robot (robot1, or robot2) is facing,
+        bearing = np.array([np.cos(yaw), np.sin(yaw)])
+        self.robot_bearing = bearing
+        normalized_bearing = normalize(bearing)
+        # the position of hte robot(1,2)
+        self.robot_position = np.array([pos.x, pos.y])
+        # in order to account for occlusion the coordinate frame is
+        # translated forward in the direction that the robot is facing.
+        moved_position = self.robot_position + 0.2*normalized_bearing;
+        # relative position vector to the obstacle
+        self.object_detected = False
+        for index, obstacle in enumerate([self.goal_position, self.blind_robot_position]):
+            robot_to_obstacle = obstacle - moved_position
+            total_distance = np.linalg.norm(robot_to_obstacle)
+            norm_robot_to_obstacle= normalize(robot_to_obstacle)
+            # value between -1 and 1, where 1 is facing exactly at the blind, -1 is facing opposite.
+
+            incidence = np.dot(norm_robot_to_obstacle, normalized_bearing)
+            leaning = "right" if np.cross(normalized_bearing, norm_robot_to_obstacle) > 0 else "left"
+            object_name = "goal" if index == 0 else "blind_robot"
+            if os.getenv('tmb_publish_perception_logs'):
+                print('------------------------------------------')
+                print('self.goal_position', self.goal_position)
+                print('norm robot to obstacle', norm_robot_to_obstacle)
+                print('normalized_bearing', normalized_bearing)
+                print("regarding object:", object_name)
+                print("pose received for robot:", self.robot_name)
+                print('distance to target', total_distance)
+                print('robot pose (x, y)', (pose.x, pose.y))
+                print('incidence', incidence)
+                print('------------------------------------------')
+            # todo add case for objects obstructing the view.
+            self.latest_data.detected_by=self.robot_name
+            if total_distance < 3.5 and total_distance > 0.3 and incidence > 0.6:
+                self.latest_data.object_detected= object_name
+                self.latest_data.object_position_estimate=Point(obstacle[0], obstacle[1], 0)
+                self.latest_data.object_to_the_left_or_right=leaning
+                self.latest_data.distance=total_distance
+                self.latest_data.incidence=incidence
+                self.object_detected = True
+                print('------------------------------------------')
+                print('I have detected', object_name)
+                print('I am', self.robot_name)
+                print('------------------------------------------')
+                if index == 0:
+                    self.goal_detected=False
+                else:
+                    self.blind_robot_detected=False
+            else:
+                if index == 0:
+                    self.goal_detected=False
+                else:
+                    self.blind_robot_detected=False
+
+    def send_data(self, data):
+        if self.goal_detected or self.blind_robot_detected:
+            self.pub_object_sighted.publish(self.latest_data)
+        else:
+            self.pub_object_sighted.publish(Object_Sighted())
+
+    def run(self):
+        while not rospy.is_shutdown():
+            pass
+
+if __name__ == "__main__":
+    rospy.init_node('target_distance_detector')
+    target_distance_detector = DistanceDetector()
+    rospy.Timer(rospy.Duration(1.0/1.0), target_distance_detector.send_data)
+    target_distance_detector.run()
