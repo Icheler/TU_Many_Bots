@@ -12,13 +12,13 @@ then
 else
   world=$tmb_ROBOT_ENV
 fi
-if [ $tmb_start_both == False ]
+if [[ $tmb_start_both == False ]]
 then
   start_both=$tmb_start_both
 else
   start_both=True
 fi
-if [ $tmb_publish_perception_logs == True ]
+if [[ $tmb_publish_perception_logs == True ]]
 then
   publish_perception_logs=True
 else
