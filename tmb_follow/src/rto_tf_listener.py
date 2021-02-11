@@ -36,13 +36,16 @@ SERVICES :
 
 - follow_robot1_service : Indicates following routine request for blind robot to follow robot1 [REQUEST : Trigger -- Callback : trigger_response1]
 - follow_robot2_service : Indicates following routine request for blind robot to follow robot2 [REQUEST : Trigger -- Callback : trigger_response2]
-- follow_robot_blind_service : Indicates following routine request for the corrective robot to follow blind robot [REQUEST : Trigger -- Callback : trigger_response1]
+- follow_robot_blind_service : Indicates following routine request for the corrective (last) robot to follow blind robot [REQUEST : Trigger -- Callback : trigger_response1]
+- is_safe_blind_service : Indicates whether its safe or not for the blind robot to continue moving [REQUEST : Boolean -- Callback : safety_switch_1]
+- is_safe_corrective_service : Indicates whether its safe or not for the corrective (last) robot to continue moving [REQUEST : Boolean -- Callback : safety_switch_2]
 
 IMPORTANT VARS :
 
 - active_ : Global variable for deciding which robot is "active" as the guiding robot. [0 --> NONE , 1 --> Robot1 , 2 --> Robot2]
 - corrective_ : Global variable for signalling the corrective robot to follow the blind robot [0 --> OFF , 1 --> ON]
-
+- safe_blind_ : Boolean indicating its safe for the blind robot to move
+- safe_corrective_ : Boolean indicating its safe for the corrective robot to move
 '''
 
 
@@ -81,12 +84,23 @@ def trigger_response3(request):
     )
 
 
-def safety_switch(req):
+def safety_switch1(req):
     '''
-    Callback for is_safe_service
+    Callback for is_safe_blind_service
     '''
-    global safe_
-    safe_ = req.data
+    global safe_blind_
+    safe_blind_ = req.data
+    res = SetBoolResponse()
+    res.success = True
+    res.message = 'Done!'
+    return res
+
+def safety_switch2(req):
+    '''
+    Callback for is_safe_corrective_service
+    '''
+    global safe_corrective_
+    safe_corrective_ = req.data
     res = SetBoolResponse()
     res.success = True
     res.message = 'Done!'
@@ -100,11 +114,12 @@ def safety_switch(req):
 if __name__ == '__main__':
 
 
-    global active_, corrective_, safe_
+    global active_, corrective_, safe_blind_, safe_corrective_
 
     active_ = 0
     corrective_= 0
-    safe_ = True
+    safe_blind_ = True
+    safe_corrective_ = True
 
     rospy.init_node('rto_tf_listener')
 
@@ -113,7 +128,8 @@ if __name__ == '__main__':
     follow_robot1_service = rospy.Service('/follow_rob1', Trigger, trigger_response1)
     follow_robot2_service = rospy.Service('/follow_rob2', Trigger, trigger_response2)
     follow_robot_blind_service = rospy.Service('/follow_blind', Trigger, trigger_response3)
-    is_safe_service = rospy.Service('/is_safe', SetBool, safety_switch)
+    is_safe_blind_service = rospy.Service('/is_safe_blind', SetBool, safety_switch1)
+    is_safe_corrective_service = rospy.Service('/is_safe_corrective', SetBool, safety_switch2)
 
     robot1_cmd_vel = rospy.Publisher('robot1/cmd_vel', geometry_msgs.msg.Twist, queue_size=1)
     robot2_cmd_vel = rospy.Publisher('robot2/cmd_vel', geometry_msgs.msg.Twist, queue_size=1)
@@ -145,7 +161,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_:
+            if safe_blind_:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
@@ -166,7 +182,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_:
+            if safe_blind_:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
@@ -187,7 +203,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_:
+            if safe_corrective_:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
@@ -195,7 +211,7 @@ if __name__ == '__main__':
                 msg.angular.z = 0
             robot2_cmd_vel.publish(msg)
 
-        # Robot 2 follows the blind robot
+        # Robot 1 follows the blind robot
         elif active_ == 2 and corrective_ == 1:
 
             try:
@@ -206,7 +222,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_:
+            if safe_corrective_:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
