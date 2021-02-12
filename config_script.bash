@@ -2,7 +2,7 @@
 echo "-------------------------------------------------------------"
 echo "TU Many Bots configuration"
 echo "-------------------------------------------------------------"
-echo "tmb_ROBOT_ENV: [simple_corridor, maze, maze_simple, maze_simple_2, maze_clutter]"
+echo "tmb_ROBOT_ENV: [simple_corridor, maze, maze_simple, maze_simple_2, maze_clutter, maze_clutter_limited]"
 echo "tmb_start_both: [true, false]"
 echo "tmb_publish_perception_logs: [true, false]"
 echo "-------------------------------------------------------------"
@@ -12,13 +12,13 @@ then
 else
   world=$tmb_ROBOT_ENV
 fi
-if [ $tmb_start_both == False ]
+if [[ $tmb_start_both == False ]]
 then
   start_both=$tmb_start_both
 else
   start_both=True
 fi
-if [ $tmb_publish_perception_logs == True ]
+if [[ $tmb_publish_perception_logs == True ]]
 then
   publish_perception_logs=True
 else
@@ -51,12 +51,21 @@ then
 
   export tmb_start_robot_blind_x="-7.0"
   export tmb_start_robot_blind_y="0.0"
+
   export tmb_start_robot_blind_z="0.0"
   export tmb_start_robot_blind_yaw="5.7"
 
   export tmb_start_goal_x="0.60339"
   export tmb_start_goal_y="6.06"
   export tmb_start_goal_yaw="0"
+
+  export tmb_start_robot_1_map_transform_x="0"
+  export tmb_start_robot_1_map_transform_y="0"
+  export tmb_start_robot_1_map_transform_z="0"
+
+  export tmb_start_robot_2_map_transform_x="0"
+  export tmb_start_robot_2_map_transform_y="0"
+  export tmb_start_robot_2_map_transform_z="0"
 fi
 if [ $world = "maze" ]
 then
@@ -141,4 +150,41 @@ then
   export tmb_start_goal_x="4.04245"
   export tmb_start_goal_y="-9.42855"
   export tmb_start_goal_yaw="0"
+
+  export tmb_start_robot_1_map_transform_x="0"
+  export tmb_start_robot_1_map_transform_y="0"
+  export tmb_start_robot_1_map_transform_z="0"
+
+  export tmb_start_robot_2_map_transform_x="0"
+  export tmb_start_robot_2_map_transform_y="0"
+  export tmb_start_robot_2_map_transform_z="0"
+fi
+if [ $world = "maze_clutter_limited" ]
+then
+  export tmb_start_robot1_x="1.0"
+  export tmb_start_robot1_y="0.0"
+  export tmb_start_robot1_z="0.0"
+  export tmb_start_robot1_yaw="0.0"
+
+  export tmb_start_robot2_x="-1.0"
+  export tmb_start_robot2_y="0.0"
+  export tmb_start_robot2_z="0.0"
+  export tmb_start_robot2_yaw="0.0"
+
+  export tmb_start_robot_blind_x="-7.5"
+  export tmb_start_robot_blind_y="-4.0"
+  export tmb_start_robot_blind_z="0.0"
+  export tmb_start_robot_blind_yaw="0.0"
+
+  export tmb_start_goal_x="2"
+  export tmb_start_goal_y="2.5"
+  export tmb_start_goal_yaw="0"
+
+  export tmb_start_robot_1_map_transform_x="0"
+  export tmb_start_robot_1_map_transform_y="0"
+  export tmb_start_robot_1_map_transform_z="0"
+
+  export tmb_start_robot_2_map_transform_x="0"
+  export tmb_start_robot_2_map_transform_y="0"
+  export tmb_start_robot_2_map_transform_z="0"
 fi

@@ -161,6 +161,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_blind_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
@@ -182,6 +183,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_blind_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
@@ -203,6 +205,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_corrective_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
@@ -222,6 +225,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_corrective_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
