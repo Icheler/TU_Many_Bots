@@ -122,7 +122,7 @@ class PoseResolver:
         x_ave = x / 5.0
         y_ave = y / 5.0
         computed_pose.x = x_ave
-        computed_pose.y
+        computed_pose.y = y_ave
         computed_pose.yaw = self.computed_yaw
         self.publish_computed('robot_blind', computed_pose)
 
@@ -184,12 +184,14 @@ class PoseResolver:
 
         self.velocity_received_count += 1
         self.velocity_array[self.velocity_received_count % VELOCITY_AMOUNT] = linear_velocities
-        self.get_velocity_average()
+
 
 
     def get_robot_velocity(self, robot_name):
         def velocity_func(velocity):
             self.update_velocity_array(velocity)
+            self.get_velocity_average()
+            self.predict_yaw()
 
         return velocity_func
 
@@ -237,7 +239,6 @@ class PoseResolver:
         velocity = np.array([x, y])
         average_velocity = normalize(velocity)
         self.computed_velocity = average_velocity
-        self.predict_yaw()
 
     def predict_yaw(self):
         '''
