@@ -3,14 +3,21 @@ echo "-------------------------------------------------------------"
 echo "TU Many Bots configuration"
 echo "-------------------------------------------------------------"
 echo "tmb_ROBOT_ENV: [simple_corridor, maze, maze_simple, maze_simple_2, maze_clutter, maze_clutter_limited]"
-echo "tmb_start_both: [true, false]"
-echo "tmb_publish_perception_logs: [true, false]"
+echo "tmb_start_both: [True, False]"
+echo "tmb_with_computer_vision: [True, False]"
 echo "-------------------------------------------------------------"
 if [ -z ${tmb_ROBOT_ENV+x} ]
 then
   world=maze_clutter_limited
 else
   world=$tmb_ROBOT_ENV
+fi
+
+if [[ $tmb_with_computer_vision == False ]]
+then
+  computer_vision_enabled=$tmb_with_computer_vision
+else
+  computer_vision_enabled=True
 fi
 
 if [[ $tmb_with_predicting_yaw == False ]]
@@ -27,25 +34,18 @@ else
   start_both=True
 fi
 
-if [[ $tmb_publish_perception_logs == True ]]
-then
-  publish_perception_logs=True
-else
-  publish_perception_logs=False
-fi
-
 export tmb_ROBOT_ENV=$world
 export tmb_ROBOT=rto-1
 export tmb_ROBOT_BLIND=rto-blind
 export tmb_start_both=$start_both
-export tmb_publish_perception_logs=$publish_perception_logs
 export tmb_with_predicting_yaw=$with_predicting_yaw
+export tmb_with_computer_vision=$computer_vision_enabled
 
 
 echo "selected world is: $world"
 echo "starting both robots: $start_both"
-echo "publishing perception logs: $publish_perception_logs"
 echo "with predicting yaw: $with_predicting_yaw"
+echo "tmb_with_computer_vision": $computer_vision_enabled
 echo "-------------------------------------------------------------"
 
 if [ $world="simple_corridor" ]
