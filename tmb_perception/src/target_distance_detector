@@ -58,12 +58,11 @@ class DistanceDetector:
         self.robot_name=rospy.get_param("~robot_name", "robot1")
         # Initialize Publishers
         self.pub_object_sighted = rospy.Publisher('/tmb_perception/object_sighted', Object_Sighted, queue_size=10)
-
+        self.with_vision = os.getenv('tmb_with_computer_vision')
         # Initialize Subscribers
         self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/odom', Odometry, self.get_pose)
         self.blind_robot_pose = rospy.Subscriber('/robot_blind/odom', Odometry, self.get_blind_robot)
         rospy.Subscriber('/tmb_perception/bounding_box_interpretation', Bounding_Box_Interpretation, self.get_bounding_box_interpretation)
-
 
 
         self.blind_robot_position = np.array([4, -3.5])
@@ -102,9 +101,17 @@ class DistanceDetector:
         total_translation = data.distance * rotated_bearing
 
         computed_position = self.robot_position + total_translation
-        print('rounded', np.around(computed_position, 3))
-        print('-----------------------------------------------------------')
-
+        countded = np.around(computed_position, 3)
+        self.latest_data.object_detected= data.object_detected
+        self.latest_data.object_position_estimate=Point(computed_position[0], computed_position[1])
+        self.latest_data.distance=total_distance
+        self.latest_data.incidence=incidence
+        if data.object_detected 'goal':
+            self.goal_detected=True
+            self.blind_robot_detected=False
+        else:
+            self.blind_robot_detected=True
+            self.goal_detected=False
 
 
     def get_blind_robot(self, odom):
@@ -126,7 +133,6 @@ class DistanceDetector:
         # translated forward in the direction that the robot is facing.
         moved_position = self.robot_position + 0.3*normalized_bearing;
         # relative position vector to the obstacle
-        self.object_detected = False
         for index, obstacle in enumerate([self.goal_position, self.blind_robot_position]):
             robot_to_obstacle = obstacle - moved_position
             total_distance = np.linalg.norm(robot_to_obstacle)
@@ -137,13 +143,12 @@ class DistanceDetector:
             leaning = "right" if np.cross(normalized_bearing, norm_robot_to_obstacle) < 0 else "left"
             object_name = "goal" if index == 0 else "blind_robot"
             self.latest_data.detected_by=self.robot_name
-            if total_distance < 2.5 and total_distance > 0.2 and incidence > 0.6:
+            if total_distance < 2.5 and total_distance > 0.2 and incidence > 0.6 and not self.with_vision:
                 self.latest_data.object_detected= object_name
                 self.latest_data.object_position_estimate=Point(obstacle[0], obstacle[1], 0)
                 self.latest_data.object_to_the_left_or_right=leaning
                 self.latest_data.distance=total_distance
                 self.latest_data.incidence=incidence
-                self.object_detected = True
                 if index == 0:
                     self.goal_detected=True
                 else:
@@ -154,7 +159,7 @@ class DistanceDetector:
                 else:
                     self.blind_robot_detected=False
 
-    def send_data(self, data):
+    def send_data(self):
         if self.goal_detected or self.blind_robot_detected:
             self.pub_object_sighted.publish(self.latest_data)
         else:

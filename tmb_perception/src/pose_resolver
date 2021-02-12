@@ -11,6 +11,7 @@ from std_msgs.msg import Bool, String, Int8
 from nav_msgs.msg import Odometry
 from tmb_messages.msg import Computed_Pose
 from darknet_ros_msgs.msg import BoundingBoxes
+from tmb_messages.msg import Object_Sighted
 from sensor_msgs.msg import LaserScan
 from time import time
 
@@ -55,17 +56,11 @@ def normalize(x):
     return x / np.sqrt(np.sum(x**2))
 
 
-def build_computed_pose(pose, with_quaternion=True):
+def build_computed_pose(pose):
     computed = Computed_Pose()
     computed.x = pose.position.x
     computed.y = pose.position.y
     computed.yaw = quat_to_yaw(pose)
-    if True:
-        return computed
-    computed.quaternion_x = pose.orientation.x
-    computed.quaternion_y = pose.orientation.y
-    computed.quaternion_z = pose.orientation.z
-    computed.quaternion_w = pose.orientation.w
     return computed
 
 
@@ -87,6 +82,7 @@ class PoseResolver:
     def __init__(self):
         rospack = rospkg.RosPack()
         self.use_computed_yaw = os.getenv('tmb_with_predicting_yaw')
+        self.tmb_with_computer_vision = os.getenv('tmb_with_computer_vision')
         # Initialize Publishers
         self.pub_robot_1 = rospy.Publisher('/robot1/tmb_computed_pose', Computed_Pose, queue_size=10)
         self.pub_robot_2 = rospy.Publisher('/robot2/tmb_computed_pose', Computed_Pose, queue_size=10)
@@ -96,7 +92,7 @@ class PoseResolver:
         rospy.Subscriber('/robot1/odom', Odometry, self.get_pose('robot1'))
         rospy.Subscriber('/robot2/odom', Odometry, self.get_pose('robot2'))
         rospy.Subscriber('/robot_blind/odom', Odometry, self.get_pose('robot_blind'))
-
+        rospy.Subscriber('/tmb_perception/object_sighted', Object_Sighted, self.get_blind_robot_pose)
         rospy.Subscriber(f'/{ROBOT_TO_COMPUTE}/cmd_vel', Twist, self.get_robot_velocity(ROBOT_TO_COMPUTE))
 
         self.velocity_array = np.tile(VECTOR_TYPE, (VELOCITY_AMOUNT, 1))
@@ -110,6 +106,26 @@ class PoseResolver:
         self.computed_yaw = 0
         self.computed_bearing = np.array([1,0])
 
+
+    def get_blind_robot_pose(self, data):
+        if not self.tmb_with_computer_vision:
+            return
+        self.update_positions_array(pose)
+        computed = Computed_Pose()
+        object_position_estimate
+        self.update_positions_array(data.object_position_estimate)
+        x = 0.0
+        y = 0.0
+        for position in self.positions_array:
+            x += position[0]
+            y += position[1]
+        x_ave = x / 5.0
+        y_ave = y / 5.0
+        computed_pose.x = x_ave
+        computed_pose.y
+        computed_pose.yaw = self.computed_yaw
+        self.publish_computed('robot_blind', computed_pose)
+
     def get_pose(self, robot_name):
         '''
             The post estimate is split between robot classes
@@ -117,10 +133,13 @@ class PoseResolver:
             b) we don't have information, ie, we have to estimate the pose.
         '''
         def pos_func(odom):
+
             pose = odom.pose.pose
             if (robot_name == ROBOT_TO_COMPUTE):
-                self.update_positions_array(pose)
-                computed_pose = build_computed_pose(pose, False)
+                if (self.tmb_with_computer_vision):
+                    return
+                self.update_positions_array(pose.position)
+                computed_pose = build_computed_pose(pose)
                 if self.use_computed_yaw:
                     computed_pose.yaw = self.computed_yaw
                 self.publish_computed(robot_name, computed_pose)
@@ -138,9 +157,9 @@ class PoseResolver:
         if robot_name == 'robot_blind':
             self.pub_robot_blind.publish(computed_pose)
 
-    def update_positions_array(self, pose):
+    def update_positions_array(self, position):
         self.positions_received_count += 1
-        self.positions_array[self.positions_received_count % POSITION_AMOUNT] = np.array([pose.position.x, pose.position.y])
+        self.positions_array[self.positions_received_count % POSITION_AMOUNT] = np.array([position.x, position.y])
         self.get_movement_direction()
 
 
