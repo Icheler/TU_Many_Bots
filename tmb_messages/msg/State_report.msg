@@ -1,0 +1,5 @@
+bool goal_detected
+bool blind_robot_detected
+bool robots_in_position
+bool follow_procedure_started
+bool robots_reached_the_goal

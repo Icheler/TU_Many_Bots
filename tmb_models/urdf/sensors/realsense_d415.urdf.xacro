@@ -64,6 +64,11 @@ aluminum peripherial evaluation case.
         <geometry>
         <box size="${d415_cam_depth} ${d415_cam_width} ${d415_cam_height}"/>
         </geometry>
+        <surface>
+         	<contact>
+          		<collide_bitmask>0x10</collide_bitmask>
+         	</contact>
+      		</surface>
       </collision>
       <inertial>
         <!-- The following are not reliable values, and should not be used for modeling -->

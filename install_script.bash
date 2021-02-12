@@ -41,8 +41,6 @@ git clone https://github.com/dietriro/rto_core.git
 
 git clone https://github.com/dietriro/rto_simulation.git
 
-git clone https://github.com/ros/robot_state_publisher.git
-
 git clone https://github.com/hrnr/m-explore.git
 
 git clone https://github.com/Icheler/TU_Many_Bots.git

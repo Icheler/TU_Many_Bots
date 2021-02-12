@@ -171,8 +171,7 @@ We use gmapping with a largely base setup. We changed the parameters so the map 
 ## map_merge
 We use the multirobot_map_merge package provided by @@. This allows us to merge maps where the robot start positions are known. In theory the algorithm is also able to compute maps without knowing the start positions of the robot. This did not work in practice but we could overlay with known starting positions anyway. For known start positions the maps get overlayed. This means that deviations in SLAM lead to large deviations in the computed merged map. So a good SLAM is crucial for this to work properly.
 
-## exploration
-The only adjustments to the algorithm is a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer peroid of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by computing the biggest frontier, a goal is published on the specified topic and then we use move_base to explore the environment. Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach.
+The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by computing the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that . Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach. 
 
 ## move_base
 
@@ -184,4 +183,6 @@ The only adjustments to the algorithm is a change in topics and increasing the t
 
 # API
 
-## Possible further development
+=======
+# Possible further development
+

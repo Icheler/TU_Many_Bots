@@ -32,7 +32,13 @@
         <geometry>
           <cylinder radius="${HOKUYO_RADIUS}" length="${HOKUYO_LENGTH}" />
         </geometry>
+        <surface>
+         	<contact>
+          		<collide_bitmask>1</collide_bitmask>
+         	</contact>
+      		</surface>
       </collision>
+      
     </link>
 
     <!-- gazebo extensions -->
