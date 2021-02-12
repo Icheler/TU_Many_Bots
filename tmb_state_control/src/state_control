@@ -80,7 +80,8 @@ class State_control(object):
         goal.target_pose.pose.position.x = goal_x
         goal.target_pose.pose.position.y = goal_y
     # No rotation of the mobile base frame w.r.t. map frame
-        goal.target_pose.pose.orientation.w = 1.0
+        goal.target_pose.pose.orientation.z = -0.6816388
+        goal.target_pose.pose.orientation.w = 0.7316889
 
     # Sends the goal to the action server.
         client.send_goal(goal)
