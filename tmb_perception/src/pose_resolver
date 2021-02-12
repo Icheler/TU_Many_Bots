@@ -87,7 +87,6 @@ class PoseResolver:
     def __init__(self):
         rospack = rospkg.RosPack()
         self.use_computed_yaw = os.getenv('tmb_with_predicting_yaw')
-        print('am i using compue?', self.use_computed_yaw)
         # Initialize Publishers
         self.pub_robot_1 = rospy.Publisher('/robot1/tmb_computed_pose', Computed_Pose, queue_size=10)
         self.pub_robot_2 = rospy.Publisher('/robot2/tmb_computed_pose', Computed_Pose, queue_size=10)
@@ -123,11 +122,7 @@ class PoseResolver:
                 self.update_positions_array(pose)
                 computed_pose = build_computed_pose(pose, False)
                 if self.use_computed_yaw:
-                    print('I am updating computed!')
-                    print('for robot', robot_name)
-                    print('using computed yaw', self.use_computed_yaw)
                     computed_pose.yaw = self.computed_yaw
-                    print('I am')
                 self.publish_computed(robot_name, computed_pose)
             else:
                 computed_pose = build_computed_pose(pose)
