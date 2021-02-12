@@ -2,16 +2,49 @@
 import os
 import roslib
 import rospy
-import math
-import tf
 import numpy as np
-import geometry_msgs.msg
 from geometry_msgs.msg import Point, Pose
-from std_msgs.msg import Float32
 from tmb_messages.msg import Object_Sighted, State_report
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_srvs.srv import Trigger, SetBool
+
+"""
+    State Control
+
+        This node is implemented to track the state of the robots and run the guiding pipeline.
+
+        Terms:
+
+            Leader: the robot that guides the blind robot to the goal
+
+            Follower: the robot that follows blind robot to keep track of its position
+        
+        Guiding pipeline: 
+
+            - Robots start exploring the environment and mapping it, as soon as the goal and the 
+            blind robot is found the guiding pipeline starts.
+
+            - The robot that has found the goal will be assigned as a leader since it can be assured that
+            a path exits the between blind robot and the goal
+
+            - Robots get to the assigned positions close to the blind robot with a safe distance.
+
+            - after being positioned, the leader will start moving towards the goal and the blind robot starts following
+
+            - the follower starts following the blind robot to keep track if its position during the procedure
+
+        Subcribers:
+
+            /tmb_perception/object_sighted 
+            /robot1/pose
+            /robot2/pose
+
+        Publishers:
+
+            /state_report
+                    
+"""
 
 
 class State_control(object):
