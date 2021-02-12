@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import roslaunch
 import os
 import roslib
 import rospy
@@ -9,13 +8,10 @@ import numpy as np
 import geometry_msgs.msg
 from geometry_msgs.msg import Point, Pose
 from std_msgs.msg import Float32
-from nav_msgs.msg import OccupancyGrid
-import matplotlib.pyplot as plt
-from tmb_messages.msg import Object_Sighted
+from tmb_messages.msg import Object_Sighted, State_report
 import actionlib
-# Brings in the .action file and messages used by the move base action
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from std_srvs.srv import Trigger
+from std_srvs.srv import Trigger, SetBool
 
 
 class State_control(object):
@@ -30,10 +26,16 @@ class State_control(object):
         self.robot2_pose = Point()
         self.dist_robot1_blind_robot = 0
         self.dist_robot2_blind_robot = 0
+        self.leader_pose = Point()
+        self.state_report = State_report()
 
+        # Initialize Subscribers
         self.sub_detection = rospy.Subscriber('/tmb_perception/object_sighted', Object_Sighted, self.callback_object_detected)
         self.sub_robot1_pose = rospy.Subscriber('/robot1/pose', Pose, self.callback_robot1_pos)
         self.sub_robot2_pose = rospy.Subscriber('/robot2/pose', Pose, self.callback_robot2_pos)
+
+        # Initialize Publishers
+        self.pub_state_report = rospy.Publisher('/state_report', State_report,queue_size=10)
 
     def callback_robot1_pos(self,data):
         self.robot1_pose = data.position
@@ -42,15 +44,27 @@ class State_control(object):
         self.robot2_pose = data.position
 
     def callback_object_detected(self, data):
+        
+        #Subscribing to tmb_perception target_distance_detector node to get information on object detection 
+        
         if data.object_detected == "blind_robot":
             self.blind_robot_detected = True
             self.blind_robot_position = data.object_position_estimate
+            self.state_report.blind_robot_detected = True
         if data.object_detected == "goal":
             self.goal_detected = True
             self.goal_position = data.object_position_estimate
             self.goal_detected_by = data.detected_by
+            self.state_report.goal_detected = True
+        self.pub_state_report.publish(self.state_report)
 
     def movebase_client(self, robot_name, goal_x, goal_y, wait4it):
+
+        """
+            Using the actionlib service, a position is sent to move_base node to guide the robots to the
+            desiered destionation. Given the desiered robot's name, goal position ,and a boolian to wait for the 
+            service to finish or not, this function requests the service.  
+        """
 
     # Create an action client called "move_base" with action definition file "MoveBaseAction"
         client = actionlib.SimpleActionClient(f'{robot_name}/move_base',MoveBaseAction)
@@ -62,7 +76,7 @@ class State_control(object):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
-    # Move 0.5 meters forward along the x axis of the "map" coordinate frame 
+    # Move to goal[x,y] 
         goal.target_pose.pose.position.x = goal_x
         goal.target_pose.pose.position.y = goal_y
     # No rotation of the mobile base frame w.r.t. map frame
@@ -73,20 +87,15 @@ class State_control(object):
     # Waits for the server to finish performing the action.
         if wait4it:
             wait = client.wait_for_result()
-    # If the result doesn't arrive, assume the Server is not available
-        #if not wait:
-            #rospy.logerr("Action server not available!")
-            #rospy.signal_shutdown("Action server not available!")
-    def closest_to_blind_robot(self):
-
-        self.dist_robot1_blind_robot = math.sqrt(((self.robot1_pose.x - self.blind_robot_position.x)**2)+((self.robot1_pose.y - self.blind_robot_position.y)**2))
-        self.dist_robot2_blind_robot = math.sqrt(((self.robot2_pose.x - self.blind_robot_position.x)**2)+((self.robot2_pose.y - self.blind_robot_position.y)**2))
-        if self.dist_robot1_blind_robot > self.dist_robot2_blind_robot:
-            return "robot1"
-        else:
-            return "robot2"
 
     def choose_leader(self):
+        
+        """
+        Choose the leader based on which robot finds the goal to make sure a path exists
+        while guiding the blind robot to the Goal position. Set the proper tmb_follow service names
+        accordingly.  
+        """
+
         if self.goal_detected_by == "robot1":
             self.leader = "robot1"
             self.follower = "robot2"
@@ -100,19 +109,33 @@ class State_control(object):
         while not(self.blind_robot_detected and self.goal_detected):
             pass
         if self.blind_robot_detected and self.goal_detected:
+            #shutdown the explorer nodes
             os.system("rosnode kill /robot1/tmb_explorer")
             os.system("rosnode kill /robot2/tmb_explorer")
+
+            #choose the leader
             self.choose_leader()
-            self.movebase_client(self.follower,self.blind_robot_position.x+1,self.blind_robot_position.y-1,False)
-            self.movebase_client(self.leader,self.blind_robot_position.x+2,self.blind_robot_position.y,True)
+
+            #sends robots close to the blind robot
+            self.movebase_client(self.follower,self.blind_robot_position.x-1,self.blind_robot_position.y+2,False)
+            self.movebase_client(self.leader,self.blind_robot_position.x+1,self.blind_robot_position.y+2,True)
+            self.state_report.robots_in_position = True
+
+            #set leader move_base goal to the Goal
             self.movebase_client(self.leader,self.goal_position.x,self.goal_position.y,False)
 
+            #requests the service from the tmb_follow pkg 
             rospy.wait_for_service(self.service_leader)
             service_lead = rospy.ServiceProxy(self.service_leader, Trigger)
+            #blind robot starts following the leader
             req = service_lead()
             print(req)
+            self.state_report.follow_procedure_started = True
+
+            #requests the follow_blind service 
             rospy.wait_for_service('follow_blind')
             service_follow = rospy.ServiceProxy('follow_blind', Trigger)
+            #follower robot start following blind robot
             req = service_follow()
             print(req)
 

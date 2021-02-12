@@ -8,29 +8,36 @@ from std_srvs.srv import *
 
 '''
 RTO_LISTENER NODE
+
 This node is responsible for the grunt of the work in the follow
 subroutine. The node listens to the transforms broadcasted by its 
 sister node and uses the data, when the conditions in the exploration
 phase are met, to guide the blind_robot to the goal position.
+
 The node utilizes THREE Trigger services to give the individual robots 
 their roles in the follow routine, the transform listener is used 
 afterwards to calculate and publish the required velocity profiles.
 The services provide the required chain of events and collision avoidance
 in case the robots follow each other too closely.
----------------------------------------------------------------------
+
 PUBLISHERS : 
 - robot1_cmd_vel : Publishes velocity profile to robot1  [TOPIC : /robot1/cmd_vel -- MSG: Twist]
 - robot2_cmd_vel : Publishes velocity profile to robot2  [TOPIC : /robot2/cmd_vel -- MSG: Twist]
 - robot_blind_cmd_vel : Publishes velocity profile to the blind robot [TOPIC : /robot_blind/cmd_vel -- MSG: Twist]
+
 SUBSCRIBERS : 
  None
+ 
 SERVICES :
+
 - follow_robot1_service : Indicates following routine request for blind robot to follow robot1 [REQUEST : Trigger -- Callback : trigger_response1]
 - follow_robot2_service : Indicates following routine request for blind robot to follow robot2 [REQUEST : Trigger -- Callback : trigger_response2]
 - follow_robot_blind_service : Indicates following routine request for the corrective (last) robot to follow blind robot [REQUEST : Trigger -- Callback : trigger_response1]
 - is_safe_blind_service : Indicates whether its safe or not for the blind robot to continue moving [REQUEST : Boolean -- Callback : safety_switch_1]
 - is_safe_corrective_service : Indicates whether its safe or not for the corrective (last) robot to continue moving [REQUEST : Boolean -- Callback : safety_switch_2]
+
 IMPORTANT VARS :
+
 - active_ : Global variable for deciding which robot is "active" as the guiding robot. [0 --> NONE , 1 --> Robot1 , 2 --> Robot2]
 - corrective_ : Global variable for signalling the corrective robot to follow the blind robot [0 --> OFF , 1 --> ON]
 - safe_blind_ : Boolean indicating its safe for the blind robot to move
@@ -137,8 +144,10 @@ if __name__ == '__main__':
                 '''
                 This is a recurring block of code [Need refactoring] that uses the TransformListener to
                 compute  transform between the poses of the robots in question and saves them in :
+
                 trans : translational, rot : rotational (trans[1] indicates y, trans[0] indicates x)
                 Using the time stamps is necessary for smooth motion planning hence the use of rospy.Time()
+
                 From these transforms the angular and linear velocities are both calculated and sent to the robot
                 '''
                 (trans, rot) = listener.lookupTransform('/robot_blind', '/robot1', rospy.Time())
@@ -148,6 +157,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+            
             if safe_blind_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
@@ -155,8 +165,6 @@ if __name__ == '__main__':
                 msg.linear.x = 0
                 msg.angular.z = 0
             robot_blind_cmd_vel.publish(msg)
-
-
 
         # Blind robot to follow robot 2
         elif active_ == 2: 
@@ -169,6 +177,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_blind_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
@@ -190,6 +199,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_corrective_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
@@ -209,6 +219,7 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
+
             if safe_corrective_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
