@@ -12,53 +12,25 @@ from nav_msgs.msg import Odometry
 from tmb_messages.msg import Bounding_Box_Interpretation
 from darknet_ros_msgs.msg import BoundingBoxes
 from sensor_msgs.msg import LaserScan
-# Type: darknet_ros_msgs/BoundingBoxes
 '''
-header:
-  seq: 12
-  stamp:
-    secs: 1612599990
-    nsecs: 464141869
-  frame_id: "detection"
-image_header:
-  seq: 174
-  stamp:
-    secs: 427
-    nsecs: 398000000
-  frame_id: "robot1/camera_depth_optical_frame"
-bounding_boxes:
-  -
-    probability: 0.960372269153595
-    xmin: 0
-    ymin: 279
-    xmax: 640
-    ymax: 409
-    id: 1
-    Class: "blind_robot"
-  -
-    probability: 0.633991539478302
-    xmin: 0
-    ymin: 345
-    xmax: 640
-    ymax: 381
-    id: 1
-    Class: "blind_robot"
-  -
-    probability: 0.32626232504844666
-    xmin: 0
-    ymin: 261
-    xmax: 640
-    ymax: 407
-    id: 1
-    Class: "blind_robot"
+    As a conversion
 
+    This node makes sense of the information received from bounding boxes.
+    Notably, it predicts the distance, and rough bearing estimate of the detected object.
 
+    The laser scans in a wide span around the robot.
+    Those that overlap with the camera feed are synthesized and scaled
+    from [ 0 to 1 ] corresponding to far left and far right of the camera feed.
 
+    The location of the bounding box within the camera frame is likewise scaled.
+    The distance of the object is thus predicted from taking the scans which relate
+    to the bounding box.
 
-scan
-angle_min: -2.0
-angle_max: 2.0
-angle_increment: 0.016393441706895828
+    It thus published the following use-able information:
+        string detected_by
+        string object_detected
+        float32 distance
+        float32 camera_center_position
 
 '''
 
@@ -74,7 +46,7 @@ class BoundingBoxInterpreter:
         # Initialize Subscribers
         self.sub_bounding_box_listener = rospy.Subscriber('/robot1/bounding_boxes', BoundingBoxes, self.sub_bounding_box_listener)
         self.sub_robot_pose = rospy.Subscriber('/robot1/scan', LaserScan, self.save_scan)
-
+        self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/pose', Pose, self.get_pose)
         self.most_recent_scan = None
 
     def save_scan(self, scan):
@@ -102,10 +74,6 @@ class BoundingBoxInterpreter:
         object.object_detected = bounding_box.Class
         object.camera_center_position = self.get_bounding_box_center(bounding_box)
 
-        print('coputed distance', target_distance)
-        print('camera_center_position', object.camera_center_position)
-        print('Bounding_Box_Interpretation', Bounding_Box_Interpretation)
-        print('object.object_detected = bounding_box.Class', bounding_box.Class)
         self.pub_interpretation.publish(object)
 
 
@@ -123,33 +91,29 @@ class BoundingBoxInterpreter:
         object_center = self.get_bounding_box_center(bounding_box)
         total_scans = len(most_recent_scan)
         middle_index = int(total_scans * object_center)
-        # todo do check out of bounds
         relevant_scans = most_recent_scan[middle_index -5 : middle_index + 5]
         return np.min(relevant_scans)
-        #
-
 
     def get_bounding_box_center(self, box):
         '''
-        Parse an an array of bounding boxes
-        and return the center (measured as value between 0 and 1 from left to right)
+            Parse an an array of bounding boxes
+            and return the center (measured as value between 0 and 1 from left to right)
 
-        image_header:
-          seq: 174
-          stamp:
-            secs: 427
-            nsecs: 398000000
-          frame_id: "robot1/camera_depth_optical_frame"
-        bounding_boxes:
-          -
-            probability: 0.960372269153595
-            xmin: 0
-            ymin: 279
-            xmax: 640
-            ymax: 409
-            id: 1
-            Class: "blind_robot"
-
+            image_header:
+              seq: 174
+              stamp:
+                secs: 427
+                nsecs: 398000000
+              frame_id: "robot1/camera_depth_optical_frame"
+            bounding_boxes:
+              -
+                probability: 0.960372269153595
+                xmin: 0
+                ymin: 279
+                xmax: 640
+                ymax: 409
+                id: 1
+                Class: "blind_robot"
         '''
         x_position = (box.xmax + box.xmin) / 2.0
         return x_position / CAMERA_WIDTH
@@ -170,7 +134,6 @@ class BoundingBoxInterpreter:
             As the scan range increments in steps of 0.0163
             Steps to skip = total_angle * angle / step
             We slice the array from (2 - 0.5) * 0.0163
-            ## TODO -> consider taking reading these, not hard coding.
 
         '''
         scan_count = len(scan_ranges)
