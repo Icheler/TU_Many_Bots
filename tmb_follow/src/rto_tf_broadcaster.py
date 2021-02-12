@@ -5,16 +5,15 @@ import rospy
 import tf
 from geometry_msgs.msg import Pose
 from tmb_messages.msg import Computed_Pose
-
+from tf import transformations
 
 
 def handle_robot_pose(msg, robotname):
     br = tf.TransformBroadcaster()
-    quaternion = (
-        msg.quaternion_x,
-        msg.quaternion_y,
-        msg.quaternion_z,
-        msg.quaternion_w)
+    yaw = msg.yaw
+    if robotname == "robot_blind":
+        rospy.loginfo(yaw)
+    quaternion = tf.transformations.quaternion_from_euler(0, 0, yaw)
     br.sendTransform((msg.x, msg.y, 0),
                      quaternion,
                      rospy.Time.now(),

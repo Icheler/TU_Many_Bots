@@ -80,7 +80,7 @@ POSITION_AMOUNT = 5
 VELOCITY_AMOUNT = 5
 DISPLACEMENT_AMOUNT = 5
 VECTOR_TYPE = np.array([0.0, 0.0])
-ROBOT_TO_COMPUTE = 'robot1'
+ROBOT_TO_COMPUTE = 'robot_blind'
 
 class PoseResolver:
     '''
@@ -124,8 +124,9 @@ class PoseResolver:
                 print('computed yaw is', self.computed_yaw)
                 print('acttual yaw is', computed_pose.yaw)
                 print('-----------------------------------------------------------------')
-                if self.use_computed_yaw:
+                if True:
                     computed_pose.yaw = self.computed_yaw
+                    print('I am')
                 self.publish_computed(robot_name, computed_pose)
             else:
                 computed_pose = build_computed_pose(pose)
