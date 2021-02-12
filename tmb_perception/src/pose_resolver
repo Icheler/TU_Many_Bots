@@ -41,7 +41,7 @@ from time import time
             the expected translation from the local fram and the actual translation observed.
 
             As the robot can also rotate independently, angular displacement is also considered.
-            
+
 '''
 
 def quat_to_yaw(pose):
@@ -60,7 +60,7 @@ def build_computed_pose(pose, with_quaternion=True):
     computed.x = pose.position.x
     computed.y = pose.position.y
     computed.yaw = quat_to_yaw(pose)
-    if not with_quaternion:
+    if True:
         return computed
     computed.quaternion_x = pose.orientation.x
     computed.quaternion_y = pose.orientation.y
@@ -77,7 +77,7 @@ POSITION_AMOUNT = 5
 VELOCITY_AMOUNT = 5
 DISPLACEMENT_AMOUNT = 5
 VECTOR_TYPE = np.array([0.0, 0.0])
-ROBOT_TO_COMPUTE = 'robot1'
+ROBOT_TO_COMPUTE = 'robot_blind'
 
 class PoseResolver:
     '''
@@ -122,6 +122,7 @@ class PoseResolver:
                 self.update_positions_array(pose)
                 computed_pose = build_computed_pose(pose, False)
                 if self.use_computed_yaw:
+                    print('I am updating computed!')
                     computed_pose.yaw = self.computed_yaw
                 self.publish_computed(robot_name, computed_pose)
             else:
