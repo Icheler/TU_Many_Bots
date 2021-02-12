@@ -8,7 +8,7 @@ echo "tmb_publish_perception_logs: [true, false]"
 echo "-------------------------------------------------------------"
 if [ -z ${tmb_ROBOT_ENV+x} ]
 then
-  world=simple_corridor
+  world=maze_clutter_limited
 else
   world=$tmb_ROBOT_ENV
 fi
