@@ -60,6 +60,11 @@
                 <geometry>
                     <box size="0.25 0.11 0.16"/>
                 </geometry>
+                <surface>
+                    <contact>
+                        <collide_bitmask>1</collide_bitmask>
+                    </contact>
+                </surface>
             </collision>
         </link>
         <joint name="${name}_joint" type="fixed">
