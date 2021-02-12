@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+
+import rospy
+import rospkg
+import numpy as np
+import os
+import math
+
+from geometry_msgs.msg import Point, Pose, Quaternion, Twist
+from std_msgs.msg import Bool, String, Int8
+from nav_msgs.msg import Odometry
+from tmb_messages.msg import Computed_Pose
+from darknet_ros_msgs.msg import BoundingBoxes
+from sensor_msgs.msg import LaserScan
+from time import time
+
+'''
+    As an interface
+
+    This node acts as in interface for the following and guiding routines.
+    Notably, while some robots can see and we have good information,
+    others, such as the blind robots, have no sensors and we have to
+    compute an estimate of their yaw.
+
+    Regardless of the class, this outputs a Computed_Pose
+    - float32 x
+    - float32 y
+    - float32 yaw
+
+    Computing the yaw
+
+        Information used:
+            Global position estimates recieved from the guiding robot
+            Input velocities provided to the blind robot
+        Application:
+            computed_translation: unit vector of movement in global frame
+            computed_velocity: unit vector of linear velocity in robot local frame
+            displacement: angular rotation in radians
+
+            The bearing of the robot is determined as the difference between
+            the expected translation from the local fram and the actual translation observed.
+
+            As the robot can also rotate independently, angular displacement is also considered.
+
+'''
+
+def quat_to_yaw(pose):
+    x = pose.orientation.x
+    y = pose.orientation.y
+    z = pose.orientation.z
+    w = pose.orientation.w
+    return np.arctan2(2.0*(w*z), w*w - z*z);
+
+def normalize(x):
+    return x / np.sqrt(np.sum(x**2))
+
+
+def build_computed_pose(pose, with_quaternion=True):
+    computed = Computed_Pose()
+    computed.x = pose.position.x
+    computed.y = pose.position.y
+    computed.yaw = quat_to_yaw(pose)
+    if True:
+        return computed
+    computed.quaternion_x = pose.orientation.x
+    computed.quaternion_y = pose.orientation.y
+    computed.quaternion_z = pose.orientation.z
+    computed.quaternion_w = pose.orientation.w
+    return computed
+
+
+def rotate_vector(angle, input):
+    rotation_matrix = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    return  np.matmul(rotation_matrix, input)
+
+POSITION_AMOUNT = 5
+VELOCITY_AMOUNT = 5
+DISPLACEMENT_AMOUNT = 5
+VECTOR_TYPE = np.array([0.0, 0.0])
+ROBOT_TO_COMPUTE = 'robot_blind'
+
+class PoseResolver:
+    '''
+        An interface class which pipes robot position from a variety of sources
+        and publishes resolved results.
+    '''
+    def __init__(self):
+        rospack = rospkg.RosPack()
+        self.use_computed_yaw = os.getenv('tmb_with_predicting_yaw')
+        # Initialize Publishers
+        self.pub_robot_1 = rospy.Publisher('/robot1/tmb_computed_pose', Computed_Pose, queue_size=10)
+        self.pub_robot_2 = rospy.Publisher('/robot2/tmb_computed_pose', Computed_Pose, queue_size=10)
+        self.pub_robot_blind = rospy.Publisher('/robot_blind/tmb_computed_pose', Computed_Pose, queue_size=10)
+
+        # Initialize Subscribers
+        rospy.Subscriber('/robot1/odom', Odometry, self.get_pose('robot1'))
+        rospy.Subscriber('/robot2/odom', Odometry, self.get_pose('robot2'))
+        rospy.Subscriber('/robot_blind/odom', Odometry, self.get_pose('robot_blind'))
+
+        rospy.Subscriber(f'/{ROBOT_TO_COMPUTE}/cmd_vel', Twist, self.get_robot_velocity(ROBOT_TO_COMPUTE))
+
+        self.velocity_array = np.tile(VECTOR_TYPE, (VELOCITY_AMOUNT, 1))
+        self.positions_array = np.tile(VECTOR_TYPE, (POSITION_AMOUNT, 1))
+        self.displacement_array =np.zeros(DISPLACEMENT_AMOUNT)
+        self.positions_received_count = 0
+        self.velocity_received_count = 0
+        self.computed_velocity = VECTOR_TYPE
+        self.computed_translation = VECTOR_TYPE
+        self.last_velocity_time = None
+        self.computed_yaw = 0
+        self.computed_bearing = np.array([1,0])
+
+    def get_pose(self, robot_name):
+        '''
+            The post estimate is split between robot classes
+            a) we have reliable information ie, non blind robots,
+            b) we don't have information, ie, we have to estimate the pose.
+        '''
+        def pos_func(odom):
+            pose = odom.pose.pose
+            if (robot_name == ROBOT_TO_COMPUTE):
+                self.update_positions_array(pose)
+                computed_pose = build_computed_pose(pose, False)
+                if self.use_computed_yaw:
+                    computed_pose.yaw = self.computed_yaw
+                self.publish_computed(robot_name, computed_pose)
+            else:
+                computed_pose = build_computed_pose(pose)
+                self.publish_computed(robot_name, computed_pose)
+
+        return pos_func
+
+    def publish_computed(self, robot_name, computed_pose):
+        if robot_name == 'robot1':
+            self.pub_robot_1.publish(computed_pose)
+        if robot_name == 'robot2':
+            self.pub_robot_2.publish(computed_pose)
+        if robot_name == 'robot_blind':
+            self.pub_robot_blind.publish(computed_pose)
+
+    def update_positions_array(self, pose):
+        self.positions_received_count += 1
+        self.positions_array[self.positions_received_count % POSITION_AMOUNT] = np.array([pose.position.x, pose.position.y])
+        self.get_movement_direction()
+
+
+    def update_velocity_array(self, data):
+        '''
+            Process incoming velocity information
+            Save the velocities into the velocity array
+
+            Get the angular displacement.
+            Since the simulation cannot consistently hit clock cycles
+            the rate of update (hz) is manually checked.
+            ie. delta = angular_velocity * time.
+        '''
+        linear_velocities = np.array([data.linear.x, data.linear.y])
+        seconds = time()
+
+        if self.last_velocity_time is not None:
+            difference = seconds - self.last_velocity_time
+            angular_displacement = data.angular.z * difference
+            self.displacement_array[self.velocity_received_count % DISPLACEMENT_AMOUNT] = angular_displacement
+        self.last_velocity_time = seconds
+
+        self.velocity_received_count += 1
+        self.velocity_array[self.velocity_received_count % VELOCITY_AMOUNT] = linear_velocities
+        self.get_velocity_average()
+
+
+    def get_robot_velocity(self, robot_name):
+        def velocity_func(velocity):
+            self.update_velocity_array(velocity)
+
+        return velocity_func
+
+
+    def get_movement_direction(self):
+        '''
+            Use the array of saved positions to determine
+            a short-term trajectory unit vector
+
+            From the set of x saved positions,
+            x - 1 translations can be determined.
+            start at the latest insertion (self.positions_received_count) and propogate backwards
+            the computed_translation is an average of the most recent translations.
+        '''
+        translations = np.tile(VECTOR_TYPE, (POSITION_AMOUNT - 1, 1))
+        start_at = self.positions_received_count
+        for index, position in enumerate(self.positions_array):
+
+            if index == POSITION_AMOUNT - 1:
+                continue
+            current = (start_at - index) % POSITION_AMOUNT
+            previous = (start_at - index - 1) % POSITION_AMOUNT
+            translations[index] = self.positions_array[current] - self.positions_array[previous]
+
+        x = 0.0
+        y = 0.0
+        for translation in translations:
+            x += translation[0]
+            y += translation[1]
+
+        movement = np.array([x, y])
+        unit_movement = normalize(movement)
+        self.computed_translation = unit_movement
+
+    def get_velocity_average(self):
+        '''
+            Use the array of saved velocities
+            to determine a short-term velocity average
+        '''
+        x = 0.0
+        y = 0.0
+        for velocity in self.velocity_array:
+            x += velocity[0]
+            y += velocity[1]
+        velocity = np.array([x, y])
+        average_velocity = normalize(velocity)
+        self.computed_velocity = average_velocity
+        self.predict_yaw()
+
+    def predict_yaw(self):
+        '''
+            Using all the record values,
+            calculate an estimate of the current robot yaw.
+            Explained in steps.
+        '''
+        # since the computed translation is in the global frame,
+        # and velocity is from the local frame
+        # the dot product explains the correlation between the two unit vectors.
+        # range [1 to -1] corresponding to [0 to PI] angular difference
+        # ie, exactly coincident vectors would have correlation = 1
+        # and exactly opposite vectors would have correlation -1
+        correlation = np.dot(self.computed_translation, self.computed_velocity)
+
+        # the range [1 to -1 ] is converted to [0 to PI]
+        angular_difference = (correlation + 1 ) * 3.145 / 2
+
+        # as the difference can be either positive or negative
+        # the cross product helps to determine the orientation of the two vectors.
+        orientation = np.cross(self.computed_translation, self.computed_velocity)
+
+        # the real angular difference is therfore either + or - the angular difference
+        sign = 1 if (orientation) > 0 else -1
+        with_sign = angular_difference * sign
+        translate_result = 0 if math.isnan(with_sign) else with_sign
+
+        # note also that the robot can rotate in isolation to linear velocity
+        yaw_average = np.sum(self.displacement_array) / 5.0
+        yaw_result = 0 if math.isnan(yaw_average) else yaw_average
+
+        # the overall computed change in yaw is a combination of the two
+        # with yaw therefore is the total expected yaw from a global frame
+        with_yaw = translate_result + yaw_average
+
+        # which is converted into the current estimate of the robot bearing in a unit vector.
+        current_estimate = rotate_vector(with_yaw + 3.14, np.array([1,0]))
+
+        # if for any reason the current estimate is invalid, the update is ignored.
+        if (math.isnan(current_estimate[0]) or math.isnan(current_estimate[1])):
+            pass
+        else:
+            # We perform a weighted average of past an newly predicted unit vector for bearing
+            self.computed_bearing = normalize(self.computed_bearing + 3 * current_estimate)
+
+        self.computed_yaw = np.arctan2(self.computed_bearing[1], self.computed_bearing[0])
+
+
+    def run(self):
+        while not rospy.is_shutdown():
+            pass
+
+if __name__ == "__main__":
+    rospy.init_node('pose_resolver')
+    pose_resolver = PoseResolver()
+    pose_resolver.run()

@@ -65,25 +65,96 @@ Publishes:
 
 
 # How it works
-@@ Picture of the nodes 
+@@ Picture of the nodes
 
-We use a multitude of prebuilt and custom nodes and packages to accomplish our goal specified in the introduction. 
+We use a multitude of prebuilt and custom nodes and packages to accomplish our goal specified in the introduction.
 
 @@ Visualization of packages
 
 ## Overall explanation
-### Visual pipeline
-To perceive the environment we use RGB-D cameras and LiDar sensors. The cameras allow us to classify and position the blind robot and the goal, which we can use to publish the positions on ros topics to use them later on. These topics will be used further on to start the guidance procedure of the robot to guide the blind robot to the goal.
 
-@@ yolo ros stuff
+----
+### Perception
+Summary.
 
-Since we do not do any preprocessing to laser data the data gets processed in a raw form by the chosen SLAM algorithm. 
+To perceive the environment we use RGB cameras and LiDar sensors. The cameras allow us to classify and position the blind robot and the goal, which we can use to publish the positions on ros topics to use them later on. These topics will be used further on to start the guidance procedure of the robot to guide the blind robot to the goal.
 
+Implemented Modules
+
+#### Bounding Box Interpreter
+This node makes sense of the information received from bounding boxes.
+  Notably, it predicts the distance, and rough bearing estimate of the detected object.
+
+  The laser scans in a wide span around the robot.
+  Those that overlap with the camera feed are synthesized and scaled
+  from [ 0 to 1 ] corresponding to far left and far right of the camera feed.
+
+  The location of the bounding box within the camera frame is likewise scaled.
+  The distance of the object is thus predicted from taking the scans which relate
+  to the bounding box.
+
+
+#### Pose Resolver
+This node acts as in interface for the following and guiding routines.
+Notably, while some robots can see and we have good information,
+others, such as the blind robots, have no sensors and we have to
+compute an estimate of their yaw.
+
+Regardless of the class, this outputs a Computed_Pose
+
+Computing the yaw
+
+    Information used:
+        Global position estimates received from the guiding robot
+        Input velocities provided to the blind robot
+    Application:
+        computed_translation: unit vector of movement in global frame
+        computed_velocity: unit vector of linear velocity in robot local frame
+        displacement: angular rotation in radians
+
+        The bearing of the robot is determined as the difference between
+        the expected translation from the local frame and the actual translation observed.
+
+        As the robot can also rotate independently, angular displacement is also considered.
+
+#### Target Distance Detector
+
+As an interface
+
+This node processes the information from the perception module and makes predictions
+about the location of detected objects. However, to keep the perception pipeline as a
+detachable module it also provides an opportunity to simulate (mock) the camera module.
+Regardless, the following is published:
+
+    string detected_by
+    string object_detected
+    string object_to_the_left_or_right
+    float32 distance
+    float32 incidence
+    geometry_msgs/Point object_position_estimate
+
+
+As a mock
+
+Taking properties from the camera itself, as well as the known robot positions
+it is estimated whether the camera "would" otherwise be able to detect the object.
+In this case, we publish the information which that robot would be expected to see.
+ie, if it rotates out of the line of sight of the target, publishing stops.
+
+
+
+As an estimator
+
+Using the information from the bounding box,
+and the known information about the robot itself, form an estimation of the
+location of the spotted target.
+
+---
 ### SLAM
 For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping package. Configuration files are in the config folder in the @@ package. Gmapping was chosen over the slam-toolbox online async algorithm after evaluating both algorithms in testing. Even after including more cluttering to the maps, the toolbox still had trouble providing twist free maps and it was also getting lost during loop closures. Gmapping has the distinct advantage that our map merge algorithm works best with maps with fixed sizes which are provided by gmapping. With map merging we are able to compute an overall map which gets explored by both robots where we can locate the blind robot in.
 
 ### Path Planning
-Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles we use the local costmap. 
+Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles we use the local costmap.
 
 After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
 
@@ -95,12 +166,11 @@ After perceiving the goal, the blind robot and being able to compute a path. We 
 ## Visual Pipeline Mock
 
 ## SLAM
-We use gmapping with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration. 
+We use gmapping with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration.
 
 ## map_merge
 We use the multirobot_map_merge package provided by @@. This allows us to merge maps where the robot start positions are known. In theory the algorithm is also able to compute maps without knowing the start positions of the robot. This did not work in practice but we could overlay with known starting positions anyway. For known start positions the maps get overlayed. This means that deviations in SLAM lead to large deviations in the computed merged map. So a good SLAM is crucial for this to work properly.
 
-## exploration
 The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by computing the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that . Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach. 
 
 ## move_base
@@ -111,6 +181,8 @@ The only adjustments to the algorithm are a change in topics and increasing the 
 
 ## robot_state_publisher
 
-# API 
+# API
 
+=======
 # Possible further development
+

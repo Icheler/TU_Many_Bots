@@ -28,6 +28,11 @@
                 <geometry>
                     <cylinder radius="${BASE_RADIUS}" length="${BASE_HEIGHT}"/>
                 </geometry>
+                <surface>
+                    <contact>
+                        <collide_bitmask>1</collide_bitmask>
+                    </contact>
+                </surface>
             </collision>
         </link>
         <gazebo reference="base_link">

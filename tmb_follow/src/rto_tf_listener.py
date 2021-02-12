@@ -20,18 +20,14 @@ afterwards to calculate and publish the required velocity profiles.
 The services provide the required chain of events and collision avoidance
 in case the robots follow each other too closely.
 
----------------------------------------------------------------------
-
 PUBLISHERS : 
-
 - robot1_cmd_vel : Publishes velocity profile to robot1  [TOPIC : /robot1/cmd_vel -- MSG: Twist]
 - robot2_cmd_vel : Publishes velocity profile to robot2  [TOPIC : /robot2/cmd_vel -- MSG: Twist]
 - robot_blind_cmd_vel : Publishes velocity profile to the blind robot [TOPIC : /robot_blind/cmd_vel -- MSG: Twist]
 
 SUBSCRIBERS : 
-
  None
-
+ 
 SERVICES :
 
 - follow_robot1_service : Indicates following routine request for blind robot to follow robot1 [REQUEST : Trigger -- Callback : trigger_response1]
@@ -161,15 +157,14 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_blind_:
+            
+            if safe_blind_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
                 msg.linear.x = 0
                 msg.angular.z = 0
             robot_blind_cmd_vel.publish(msg)
-
-
 
         # Blind robot to follow robot 2
         elif active_ == 2: 
@@ -182,7 +177,8 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_blind_:
+
+            if safe_blind_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
@@ -203,7 +199,8 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_corrective_:
+
+            if safe_corrective_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:
@@ -222,7 +219,8 @@ if __name__ == '__main__':
             angular = 4 * math.atan2(trans[1], trans[0])
             linear = 0.5 * math.sqrt(trans[0] ** 2 + trans[1] ** 2)
             msg = geometry_msgs.msg.Twist()
-            if safe_corrective_:
+
+            if safe_corrective_ and (linear/0.5) > 1.0:
                 msg.linear.x = linear
                 msg.angular.z = angular
             else:

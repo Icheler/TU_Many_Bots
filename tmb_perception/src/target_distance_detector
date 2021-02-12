@@ -11,6 +11,41 @@ from nav_msgs.msg import Odometry
 from tmb_messages.msg import Object_Sighted
 from tmb_messages.msg import Bounding_Box_Interpretation
 
+
+'''
+    As an interface
+
+        This node processes the information from the perception module and makes predictions
+        about the location of detected objects. However, to keep the perception pipeline as a
+        detachable module it also provides an opportunity to simlulate (mock) the camera module.
+        Regardless, the following is published:
+
+            string detected_by
+            string object_detected
+            string object_to_the_left_or_right
+            float32 distance
+            float32 incidence
+            geometry_msgs/Point object_position_estimate
+
+
+    As a mock
+        Taking properties from the camera itself, as well as the known robot positions
+        it is estimated whether the camera "would" otherwise be able to detect the object.
+        In this case, we publish the information which that robot would be expected to see.
+        ie, if it rotates out of the line of sight of the target, publishing stops.
+
+
+
+     As an estimator
+        Using the information from the bounding box,
+        and the known information about the robot itself, form an estimation of the
+        location of the spotted target.
+
+
+
+'''
+
+
 CAMERA_RANGE_SPAN=1.15
 
 def normalize(x):

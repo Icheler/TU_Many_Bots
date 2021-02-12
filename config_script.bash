@@ -12,12 +12,21 @@ then
 else
   world=$tmb_ROBOT_ENV
 fi
+
+if [[ $tmb_with_predicting_yaw == False ]]
+then
+  with_predicting_yaw=$tmb_with_predicting_yaw
+else
+  with_predicting_yaw=True
+fi
+
 if [[ $tmb_start_both == False ]]
 then
   start_both=$tmb_start_both
 else
   start_both=True
 fi
+
 if [[ $tmb_publish_perception_logs == True ]]
 then
   publish_perception_logs=True
@@ -30,11 +39,13 @@ export tmb_ROBOT=rto-1
 export tmb_ROBOT_BLIND=rto-blind
 export tmb_start_both=$start_both
 export tmb_publish_perception_logs=$publish_perception_logs
+export tmb_with_predicting_yaw=$with_predicting_yaw
 
 
 echo "selected world is: $world"
 echo "starting both robots: $start_both"
 echo "publishing perception logs: $publish_perception_logs"
+echo "with predicting yaw: $with_predicting_yaw"
 echo "-------------------------------------------------------------"
 
 if [ $world="simple_corridor" ]

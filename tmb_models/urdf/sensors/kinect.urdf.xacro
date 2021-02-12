@@ -32,6 +32,11 @@
         <geometry>
           <box size="${KINECT_LENGTH} ${KINECT_WIDTH} ${KINECT_HEIGHT}"/>
         </geometry>
+        <surface>
+         <contact>
+          <collide_bitmask>0x10</collide_bitmask>
+         </contact>
+      	</surface>
       </collision>
     </link>
     <!-- add simulation of 3d sensor -->
