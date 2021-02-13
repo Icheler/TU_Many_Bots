@@ -10,12 +10,12 @@ They must guide the blind robot to the exit.
 
 <table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
   <tr>
-    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='300'></td>
-    <td style="width: 50%;"> <img src="Demo/topright.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='400'></td>
+    <td style="width: 50%;"> <img src="Demo/topright.gif" width='400'></td>
   </tr>
   <tr>
-    <td style="width: 50%;"> <img src="Demo/bottomleft.gif" width='300'></td>
-    <td style="width: 50%;"> <img src="Demo/bottomright.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/bottomleft.gif" width='400'></td>
+    <td style="width: 50%;"> <img src="Demo/bottomright.gif" width='400'></td>
   </tr>
 </table>
 
@@ -207,11 +207,11 @@ For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping pa
 
 <table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%" class="center">
   <tr>
-    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='300'></td>
-    <td style="width: 50%;"> <img src="Demo/topright.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='400'></td>
+    <td style="width: 50%;"> <img src="Demo/topright.gif" width='400'></td>
   </tr>
   <tr>
-    <td style="width: 100%;" align="center"> <img src="Demo/bottomleft.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/bottomleft.gif" width='400'></td>
   </tr>
 </table>
 
@@ -223,6 +223,7 @@ After perceiving the goal, the blind robot and being able to compute a path. We 
 
 ### Guiding routine
 @@
+
 ![Guiding routine](Demo/bottomright.gif)
 
 ## SLAM
@@ -241,6 +242,7 @@ We use the explore_lite package provided by http://wiki.ros.org/explore_lite. Th
 ## following routine
 
 ## robot_state_publisher
+This package allows you to publish the state of a robot to tf2. Once the state gets published, it is available to all components in the system that also use tf2. The package takes the joint angles of the robot as input and publishes the 3D poses of the robot links, using a kinematic tree model of the robot. Since in ROS noetic tf is deprecated in favor of tf2, the concept of a multi robots system using tf_prifix was not possible. Tf_prefix is designed for operating multiple similar robots in the same environment. The tf_prefix parameter allows two robots to have base_link frames, for they will become /robot1/base_link and /robot2/base_link if all nodes for robot1 are run in robot1 as their tf_prefix parameter. Therefore, we had to manually modify **robot_state_publisher** package to be able to run multiple robots in our simulation. 
 
 # API
 
