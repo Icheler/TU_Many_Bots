@@ -202,7 +202,7 @@ After perceiving the goal, the blind robot and being able to compute a path. We 
 
 ### Guiding routine
 Once the problem statement is solved (i.e the mapping robots found both the goal position and the blind robot and a path exists between them) the problem switches from the mapping and exploration phase to the guiding phase, which is implemented via the guiding routine found in the **tmb_follow** package. 
-</br>
+
 The Guiding routine receives the blind robot's pose estimated using the **pose_resolver** node from the peception module, together with the estimated poses of the guiding robots. The routine utilizes **TF** to calculate the control signals to obtain the required velocity profiles for the robots to move in a single file-like chain to the goal getting the blind robot to the required position. The routine also uses several services for action distinction and ensuring a collision free interaction while proceeding to the goal.
 
 ## SLAM
