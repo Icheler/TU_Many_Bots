@@ -8,7 +8,7 @@ They must locate the exit, as well as a blind robot, i.e. without visual sensors
 They must guide the blind robot to the exit.   
 ```
 
-<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%">
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
   <tr>
     <td style="width: 50%;"> <img src="Demo/topleft.gif" width='300'></td>
     <td style="width: 50%;"> <img src="Demo/topright.gif" width='300'></td>
@@ -205,6 +205,17 @@ Application:
 ### SLAM
 For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping package. Configuration files are in the config folder in the tmb_communication package. Gmapping was chosen over the slam-toolbox online async algorithm after evaluating both algorithms in testing. Even after including more cluttering to the maps, the toolbox still had trouble providing twist free maps and it was also getting lost during loop closures. Gmapping has the distinct advantage that our map merge algorithm works best with maps with fixed sizes which are provided by gmapping. With map merging we are able to compute an overall map which gets explored by both robots where we can locate the blind robot in.
 
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%" class="center">
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/topright.gif" width='300'></td>
+  </tr>
+  <tr>
+    <td style="width: 100%;" align="center"> <img src="Demo/bottomleft.gif" width='300'></td>
+  </tr>
+</table>
+
+
 ### Path Planning
 Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles through the local costmap.
 
@@ -212,6 +223,7 @@ After perceiving the goal, the blind robot and being able to compute a path. We 
 
 ### Guiding routine
 @@
+![Guiding routine](Demo/bottomright.gif)
 
 ## SLAM
 We use gmapping (http://wiki.ros.org/gmapping) with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration. Configuration is specified in the tmb_communication package under config. 
