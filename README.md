@@ -214,7 +214,7 @@ We use the multirobot_map_merge package provided by @@. This allows us to merge 
 The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by computing the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that . Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach.
 
 ## move_base
-**move_base** ROS Node is a major component of the [Navigation Stack](http://wiki.ros.org/navigation). 
+[move_base](200~http://wiki.ros.org/move_base) ROS Node is a major component of the [Navigation Stack](http://wiki.ros.org/navigation). 
 
 The move_base package provides an implementation of an action (from action_lib) that, given a goal in the world, will attempt to reach it with a mobile base. The **move_base** node links together a **global and local planner** to accomplish its global navigation task. It supports any global planner adhering to the BaseGlobalPlanner interface specified in the nav_core package and any local planner adhering to the BaseLocalPlanner interface specified in the same package. The move_base node also maintains **two costmaps**, one for the global planner, and one for a local planner
 ## position listener
