@@ -10,9 +10,14 @@ They must guide the blind robot to the exit.
 
 <table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%">
   <tr>
-    <td style="width: 50%;"> <img src="Demo/topleft_final.gif" width='300'></td>
-    <td style="width: 50%;"> <img src="Demo/topleft_final.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/topright.gif" width='300'></td>
   </tr>
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/bottomleft.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/bottomright.gif" width='300'></td>
+  </tr>
+</table>
 
 ---
 ### System Prerequisites
