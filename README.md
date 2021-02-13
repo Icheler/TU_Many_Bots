@@ -215,11 +215,12 @@ The only adjustments to the algorithm are a change in topics and increasing the 
 
 ## move_base
 **move_base** ROS Node is a major component of the [Navigation Stack](http://wiki.ros.org/navigation). 
+
 The move_base package provides an implementation of an action (from action_lib) that, given a goal in the world, will attempt to reach it with a mobile base. The **move_base** node links together a **global and local planner** to accomplish its global navigation task. It supports any global planner adhering to the BaseGlobalPlanner interface specified in the nav_core package and any local planner adhering to the BaseLocalPlanner interface specified in the same package. The move_base node also maintains **two costmaps**, one for the global planner, and one for a local planner
 ## position listener
 
 ## following routine
-
+@@ What should be done here ?? A more detailed description ??
 ## robot_state_publisher
 
 # API
