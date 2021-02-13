@@ -7,10 +7,6 @@
     uri: https://github.com/dietriro/rto_simulation.git
     version: noetic-devel
 - git:
-    local-name: robot_state_publisher
-    uri: https://github.com/ros/robot_state_publisher.git
-    version: noetic-devel
-- git:
     local-name: m-explore
     uri: https://github.com/hrnr/m-explore.git
     version: noetic-devel
