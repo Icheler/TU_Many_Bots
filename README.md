@@ -8,6 +8,11 @@ They must locate the exit, as well as a blind robot, i.e. without visual sensors
 They must guide the blind robot to the exit.   
 ```
 
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%">
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/topleft_final.gif" width='300'></td>
+    <td style="width: 50%;"> <img src="Demo/topleft_final.gif" width='300'></td>
+  </tr>
 
 ---
 ### System Prerequisites
