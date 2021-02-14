@@ -72,8 +72,8 @@ with predicting yaw: False
 eg. change the map with ``export tmb_ROBOT_ENV=simple_corridor``
 
 ---
-## Run
----
+### Run
+
 
 The simulation can be started with:
 ```
@@ -187,22 +187,20 @@ Taking properties from the camera itself, as well as the known robot positions i
 
 #### __Pose Estimator__
 The pose estimator acts as an interface for the following and guiding routines.
-Notably, while some robots can see, provide and use good information, others, such as the blind robot, have no sensors and we have to compute an estimate of their state, including position and yaw.
-
-Regardless of the class, this outputs a __Computed_Pose__
+Robots which sufficient sensor input are able to determine their own pose and this is accordingly passed along unchanged. The blind robot instead needs to have its pose estimated.
 
 Information used:
   - Global position estimates received from the guiding robot
   - Input velocities provided to the blind robot
-  
+
+A series of global position estimates are combined to form a short term computed estimate of the robot translation. This, when compared with the linear input velocity of the local frame generates a bearing estimate. For example, an attempt to go forward according to the velocity which results in backward translation indicates a downward bearing. However, angular rotation can occur in the absence of translation. Thus angular rotation as measured by integrating the angular velocity is independently added to the bearing estimate.
+
 Application|Description
 ---|---
 computed_translation|unit vector of movement in global frame
 computed_velocity|unit vector of linear velocity in robot local frame
 displacement|angular rotation in radians
-bearing|is determined as the difference between the expected translation from the local frame and the actual translation observed.
 
-As the robot can also rotate independently, angular displacement is also considered.
 
 ## SLAM
 We use [gmapping](http://wiki.ros.org/gmapping) with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration. Configuration is specified in the tmb_communication package under config.
