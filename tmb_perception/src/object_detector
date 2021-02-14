@@ -51,7 +51,7 @@ CAMERA_RANGE_SPAN=1.15
 def normalize(x):
     return x / np.sqrt(np.sum(x**2))
 
-class DistanceDetector:
+class ObjectDetector:
 
     def __init__(self):
         rospack = rospkg.RosPack()
@@ -165,7 +165,7 @@ class DistanceDetector:
             pass
 
 if __name__ == "__main__":
-    rospy.init_node('target_distance_detector')
-    target_distance_detector = DistanceDetector()
-    rospy.Timer(rospy.Duration(1.0/10.0), target_distance_detector.send_data)
-    target_distance_detector.run()
+    rospy.init_node('object_detector')
+    object_detector = ObjectDetector()
+    rospy.Timer(rospy.Duration(1.0/10.0), object_detector.send_data)
+    object_detector.run()
