@@ -222,7 +222,9 @@ Path planning works in two different phases. First we explore the environment by
 After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
 
 ### Guiding routine
-@@
+Once the problem statement is solved (i.e the mapping robots found both the goal position and the blind robot and a path exists between them) the problem switches from the mapping and exploration phase to the guiding phase, which is implemented via the guiding routine found in the **tmb_follow** package. 
+
+The Guiding routine receives the blind robot's pose estimated using the **pose_resolver** node from the peception module, together with the estimated poses of the guiding robots. The routine utilizes **TF** to calculate the control signals to obtain the required velocity profiles for the robots to move in a single file-like chain to the goal getting the blind robot to the required position. The routine also uses several services for action distinction and ensuring a collision free interaction while proceeding to the goal.
 
 ![Guiding routine](Demo/bottomright.gif)
 
@@ -236,11 +238,17 @@ We use the multirobot_map_merge package provided by (http://wiki.ros.org/multiro
 We use the explore_lite package provided by http://wiki.ros.org/explore_lite. This is developed by the same developer as the multirobot_map_merge package we explained previously. The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by finding the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that frontier. Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach. Drawbacks of this approach can be found when looking at time needed to explore a complete space, since only the biggest frontiers get explored, newly found frontiers in the vicinity of the robot get explored at a later time. 
 
 ## move_base
+[move_base](200~http://wiki.ros.org/move_base) ROS Node is a major component of the [Navigation Stack](http://wiki.ros.org/navigation). 
 
+The move_base package provides an implementation of an action (from action_lib) that, given a goal in the world, will attempt to reach it with a mobile base. The **move_base** node links together a **global and local planner** to accomplish its global navigation task. It supports any global planner adhering to the BaseGlobalPlanner interface specified in the nav_core package and any local planner adhering to the BaseLocalPlanner interface specified in the same package. The move_base node also maintains **two costmaps**, one for the global planner, and one for a local planner
 ## position listener
 
 ## following routine
+The routine consists of **two nodes**, the broadcaster plays the role of reading the position estimates of the robots including the blind_robot [via odom or pose_resolver] and re-broadcasts them as tf frames relative to the Global Map Topic: /map
+The launch file tmb_follow.launch assigns the frames for all the robots in the simulation, visit to adjust accordingly. The broadcaste subscribes to the respective robots namespace /odom topic and message type Odometry. The second node responsible for the grunt of the work in the follow
+subroutine. The node listens to the transforms broadcasted by its  sister node and uses the data, when the conditions in the exploration phase are met, to guide the blind_robot to the goal position.
 
+The node utilizes THREE Trigger services to give the individual robots  their roles in the follow routine, the transform listener is used afterwards to calculate and publish the required velocity profiles. The services provide the required chain of events and collision avoidance in case the robots follow each other too closely.
 ## robot_state_publisher
 This package allows you to publish the state of a robot to tf2. Once the state gets published, it is available to all components in the system that also use tf2. The package takes the joint angles of the robot as input and publishes the 3D poses of the robot links, using a kinematic tree model of the robot. Since in ROS noetic tf is deprecated in favor of tf2, the concept of a multi robots system using tf_prifix was not possible. Tf_prefix is designed for operating multiple similar robots in the same environment. The tf_prefix parameter allows two robots to have base_link frames, for they will become /robot1/base_link and /robot2/base_link if all nodes for robot1 are run in robot1 as their tf_prefix parameter. Therefore, we had to manually modify **robot_state_publisher** package to be able to run multiple robots in our simulation. 
 
