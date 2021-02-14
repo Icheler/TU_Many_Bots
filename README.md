@@ -220,7 +220,11 @@ The move_base package provides an implementation of an action (from action_lib) 
 ## position listener
 
 ## following routine
-@@ What should be done here ?? A more detailed description ??
+The routine consists of **two nodes**, the broadcaster plays the role of reading the position estimates of the robots including the blind_robot [via odom or pose_resolver] and re-broadcasts them as tf frames relative to the Global Map Topic: /map
+The launch file tmb_follow.launch assigns the frames for all the robots in the simulation, visit to adjust accordingly. The broadcaste subscribes to the respective robots namespace /odom topic and message type Odometry. The second node responsible for the grunt of the work in the follow
+subroutine. The node listens to the transforms broadcasted by its  sister node and uses the data, when the conditions in the exploration phase are met, to guide the blind_robot to the goal position.
+
+The node utilizes THREE Trigger services to give the individual robots  their roles in the follow routine, the transform listener is used afterwards to calculate and publish the required velocity profiles. The services provide the required chain of events and collision avoidance in case the robots follow each other too closely.
 ## robot_state_publisher
 
 # API

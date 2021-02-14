@@ -12,7 +12,7 @@ tmb_follow_pose_broadcasters NODE
 This node play the role of reading the position estimates of the robots
 including the blind_robot [via odom] and re-broadcasts them as tf frames
 relative to the Global Map Topic: /map
-The launch file follow_rto.launch assigns the frames for all the robots
+The launch file tmb_follow.launch assigns the frames for all the robots
 in the simulation, visit to adjust accordingly.
 The broadcaste subscribes to the respective robots namespace /odom topic
 and message type Odometry.
