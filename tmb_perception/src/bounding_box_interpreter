@@ -39,14 +39,13 @@ class BoundingBoxInterpreter:
 
     def __init__(self):
         rospack = rospkg.RosPack()
-
+        self.robot_name=rospy.get_param("~robot_name", "robot1")
         # Initialize Publishers
         self.pub_interpretation = rospy.Publisher('/tmb_perception/bounding_box_interpretation', Bounding_Box_Interpretation, queue_size=10)
 
         # Initialize Subscribers
-        self.sub_bounding_box_listener = rospy.Subscriber('/robot1/bounding_boxes', BoundingBoxes, self.sub_bounding_box_listener)
-        self.sub_robot_pose = rospy.Subscriber('/robot1/scan', LaserScan, self.save_scan)
-        self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/pose', Pose, self.get_pose)
+        self.sub_bounding_box_listener = rospy.Subscriber(f'/{self.robot_name}/bounding_boxes', BoundingBoxes, self.sub_bounding_box_listener)
+        self.sub_robot_pose = rospy.Subscriber(f'/{self.robot_name}/scan', LaserScan, self.save_scan)
         self.most_recent_scan = None
 
     def save_scan(self, scan):
@@ -69,7 +68,7 @@ class BoundingBoxInterpreter:
             return
         object = Bounding_Box_Interpretation()
 
-        object.detected_by = "robot1"
+        object.detected_by = self.robot_name
         object.distance = target_distance
         object.object_detected = bounding_box.Class
         object.camera_center_position = self.get_bounding_box_center(bounding_box)
