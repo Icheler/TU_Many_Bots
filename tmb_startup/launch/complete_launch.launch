@@ -14,5 +14,5 @@
     <node pkg="tmb_communication" type="trace_removal" name="trace" output="screen" />
     <include file="$(find tmb_follow)/launch/follow_rto.launch"/>
     <node pkg="tmb_state_control" type="state_control" name="state" output="screen"/>
-    <node pkg="tmb_perception" type="pose_resolver" name="pose_resolver" output="screen"/>
+    <node pkg="tmb_perception" type="pose_estimator" name="pose_estimator" output="screen"/>
 </launch>

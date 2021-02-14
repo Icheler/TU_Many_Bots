@@ -79,7 +79,7 @@ DISPLACEMENT_AMOUNT = 5
 VECTOR_TYPE = np.array([0.0, 0.0])
 ROBOT_TO_COMPUTE = 'robot_blind'
 
-class PoseResolver:
+class PoseEstimator:
     '''
         An interface class which pipes robot position from a variety of sources
         and publishes resolved results.
@@ -272,6 +272,6 @@ class PoseResolver:
             pass
 
 if __name__ == "__main__":
-    rospy.init_node('pose_resolver')
-    pose_resolver = PoseResolver()
-    pose_resolver.run()
+    rospy.init_node('pose_estimator')
+    pose_estimator = PoseEstimator()
+    pose_estimator.run()

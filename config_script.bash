@@ -2,9 +2,8 @@
 echo "-------------------------------------------------------------"
 echo "TU Many Bots configuration"
 echo "-------------------------------------------------------------"
-echo "tmb_ROBOT_ENV: [simple_corridor, maze, maze_simple, maze_simple_2, maze_clutter, maze_clutter_limited]"
+echo "tmb_ROBOT_ENV: [simple_corridor, maze, maze_clutter, maze_clutter_limited]"
 echo "tmb_start_both: [true, false]"
-echo "tmb_publish_perception_logs: [true, false]"
 echo "-------------------------------------------------------------"
 if [ -z ${tmb_ROBOT_ENV+x} ]
 then
@@ -44,7 +43,6 @@ export tmb_with_predicting_yaw=$with_predicting_yaw
 
 echo "selected world is: $world"
 echo "starting both robots: $start_both"
-echo "publishing perception logs: $publish_perception_logs"
 echo "with predicting yaw: $with_predicting_yaw"
 echo "-------------------------------------------------------------"
 

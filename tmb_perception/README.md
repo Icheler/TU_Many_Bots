@@ -1,8 +1,9 @@
 # Running the robot detector
 
- roslaunch darknet_ros darknet_ros.launch
 
-# Installing the perception modules
+ >roslaunch darknet_ros darknet_ros.launch
+
+# Installing the deep learning module
 
 The perception module used the YOLO object detection library.
 For this to work, it requires an installation of OpenCV.
@@ -62,7 +63,7 @@ ensuring it all build correctly takes a few steps.
 - catkin build
 
 
-When running darknet ROS, you might find that there's a gcc incompatablity. (I did.)
+When running darknet ROS, you might find that there's a gcc incompatablity.
 - sudo apt -y install gcc-7 g++-7 gcc-8 g++-8 gcc-9 g++-9
 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
@@ -73,3 +74,11 @@ When running darknet ROS, you might find that there's a gcc incompatablity. (I d
 - sudo update-alternatives --config gcc
 (select 8)
 check with gcc --version
+
+## 5) Getting the weights
+
+Note that the weights file to too large to place within the git repository.
+Download the following file (250mb)
+https://drive.google.com/file/d/1uWQcnD9qAxFKceZ3PMzGEXqxmT-0L-Ix/view?usp=sharing
+
+and place it within TU_Many_Bots/darknet_ros/darknet_ros/yolo_network_config/weights
