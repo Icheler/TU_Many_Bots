@@ -3,7 +3,9 @@ import os
 import roslib
 import rospy
 import numpy as np
+import math
 from geometry_msgs.msg import Point, Pose
+from nav_msgs.msg import Odometry
 from tmb_messages.msg import Object_Sighted, State_report
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -64,17 +66,17 @@ class State_control(object):
 
         # Initialize Subscribers
         self.sub_detection = rospy.Subscriber('/tmb_perception/object_sighted', Object_Sighted, self.callback_object_detected)
-        self.sub_robot1_pose = rospy.Subscriber('/robot1/pose', Pose, self.callback_robot1_pos)
-        self.sub_robot2_pose = rospy.Subscriber('/robot2/pose', Pose, self.callback_robot2_pos)
+        self.sub_robot1_pose = rospy.Subscriber('/robot1/odom', Odometry, self.callback_robot1_pos)
+        self.sub_robot2_pose = rospy.Subscriber('/robot2/odom', Odometry, self.callback_robot2_pos)
 
         # Initialize Publishers
         self.pub_state_report = rospy.Publisher('/state_report', State_report,queue_size=10)
 
     def callback_robot1_pos(self,data):
-        self.robot1_pose = data.position
+        self.robot1_pose = data.pose.pose.position
 
     def callback_robot2_pos(self,data):
-        self.robot2_pose = data.position
+        self.robot2_pose = data.pose.pose.position
 
     def callback_object_detected(self, data):
         
@@ -125,9 +127,9 @@ class State_control(object):
     def choose_leader(self):
         
         """
-        Choose the leader based on which robot finds the goal to make sure a path exists
-        while guiding the blind robot to the Goal position. Set the proper tmb_follow service names
-        accordingly.  
+            Choose the leader based on which robot finds the goal to make sure a path exists
+            while guiding the blind robot to the Goal position. Set the proper tmb_follow service names
+            accordingly.  
         """
 
         if self.goal_detected_by == "robot1":
@@ -140,6 +142,14 @@ class State_control(object):
             self.service_leader = "follow_rob2"
     
     def state(self):
+
+        """
+            This function is implemented to control the state of the robots through the whole process.
+            It resembles an finite-state machine. In the begining it waits until the Goal and the blind_robot
+            are found, then it kill explorer nodes and send both robots close to the blind robot via move base service.
+            When both robots are in position it requests services from tmb_follow so the guiding routine can start. Through the whole
+            process it publishes the state report on /state_report topic.
+        """
         while not(self.blind_robot_detected and self.goal_detected):
             pass
         if self.blind_robot_detected and self.goal_detected:
@@ -172,7 +182,7 @@ class State_control(object):
             #follower robot start following blind robot
             req = service_follow()
             print(req)
-
+        
 if __name__ == '__main__':
     rospy.init_node('state_control')
     state_control = State_control()

@@ -90,6 +90,8 @@ roslaunch darknet_ros darknet_ros.launch
 
 # Module Summary
 
+![nodes diagram](Demo/nodes_no_tf.png)
+
 ### Perception
 
 The perception module uses sensor data from the camera, laser scanner and odometry of the non-blind robots to predict the state of the blind robot. This includes a trained deep learning module for object detection, the interpretation of detected bounding boxes into the detecting robot's local coordinate frame, and then synthesizing this with the recent history of the blind robot to have an estimate of its location and bearing in the global frame.
@@ -114,8 +116,10 @@ Path planning works in two different phases. First we explore the environment by
 
 After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
 
+
 ### Guiding Routine
 The guiding module, which serves the purpose of leading the blind robot to the goal position, actively publishes the estimated poses of all the robots, then through transformations the control outputs (consisting of velocity profiles) are applied to the robots creating a single file chain to navigate the blind robot.
+
 
 ![Guiding routine](Demo/bottomright.gif)
 
