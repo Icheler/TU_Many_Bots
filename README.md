@@ -4,10 +4,20 @@
 
 ```
 Two capable robots are spawned into an unknown world.  
-They must locate the exit, as well as a lost blind (no sensors) robot.    
+They must locate the exit, as well as a blind robot, i.e. without visual sensors.    
 They must guide the blind robot to the exit.   
 ```
 
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%"; class="center">
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='400'></td>
+    <td style="width: 50%;"> <img src="Demo/topright.gif" width='400'></td>
+  </tr>
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/bottomleft.gif" width='400'></td>
+    <td style="width: 50%;"> <img src="Demo/bottomright.gif" width='400'></td>
+  </tr>
+</table>
 
 ---
 ### System Prerequisites
@@ -48,7 +58,7 @@ as well as the currently active setup.
 -------------------------------------------------------------
 TU Many Bots configuration
 -------------------------------------------------------------
-tmb_ROBOT_ENV: [simple_corridor, maze, maze_simple, maze_simple_2, maze_clutter, maze_clutter_limited]
+tmb_ROBOT_ENV: [simple_corridor, maze, maze_clutter, maze_clutter_limited]
 tmb_start_both: [true, false]
 tmb_publish_perception_logs: [true, false]
 -------------------------------------------------------------
@@ -65,14 +75,18 @@ eg. change the map with ``export tmb_ROBOT_ENV=simple_corridor``
 
 ## Run
 
-The most important commands to get the simulation to start:
+The simulation can be started with:
 ```
 roslaunch tmb_startup complete_launch.launch
 ```
 
-Todo: include running scripts for vsion module
+Regardless of whether the computer vision pipeline is enabled for this computation, the module can always be run independently to see its performance.
 
---- 
+```
+roslaunch darknet_ros darknet_ros.launch
+```
+
+---
 
 ## How it works
 @@ Picture of the nodes
@@ -81,15 +95,44 @@ We use a multitude of prebuilt and custom nodes and packages to accomplish our g
 
 @@ Visualization of packages
 
-## Overall explanation
+---
+### Perception
 
+The perception module uses sensor data from the camera, laser scanner and odometry of the non-blind robots to predict the state of the blind robot. This includes a trained deep learning module for object detection, the interpretation of detected bounding boxes into the detecting robot's local coordinate frame, and then synthesizing this with the recent history of the blind robot to have an estimate of its location and bearing in the global frame.
+
+### SLAM
+For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping package. Configuration files are in the config folder in the tmb_communication package. Gmapping was chosen over the slam-toolbox online async algorithm after evaluating both algorithms in testing. Even after including more cluttering to the maps, the toolbox still had trouble providing twist free maps and it was also getting lost during loop closures. Gmapping has the distinct advantage that our map merge algorithm works best with maps with fixed sizes which are provided by gmapping. With map merging we are able to compute an overall map which gets explored by both robots where we can locate the blind robot in.
+
+### Path Planning
+Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles through the local costmap.
+
+After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
+
+### Guiding routine
+@@
+
+## SLAM
+We use gmapping (http://wiki.ros.org/gmapping) with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration. Configuration is specified in the tmb_communication package under config.
+
+## map_merge
+We use the multirobot_map_merge package provided by (http://wiki.ros.org/multirobot_map_merge). This allows us to merge maps where the robot start positions are known. In theory the algorithm is also able to compute maps without knowing the start positions of the robot. This did not work in practice but we could overlay with known starting positions anyway. For known start positions the maps get overlayed. This means that deviations in SLAM lead to large deviations in the computed merged map. So a good SLAM is crucial for this to work properly.
+
+## exploration
+We use the explore_lite package provided by http://wiki.ros.org/explore_lite. This is developed by the same developer as the multirobot_map_merge package we explained previously. The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by finding the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that frontier. Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach. Drawbacks of this approach can be found when looking at time needed to explore a complete space, since only the biggest frontiers get explored, newly found frontiers in the vicinity of the robot get explored at a later time.
+
+## move_base
+
+## position listener
+
+## following routine
+
+## robot_state_publisher
 
 ---
+
 ### ***Perception***
 
-</br>
-</br>
-The perception module answers the question:  
+<img src="Demo/detection.png">
 
 > "*What the guiding robots tells us about the blind robot*"
 
@@ -109,19 +152,19 @@ This can be done by creating a **mock** of step.
 The bounding box is mocked by assuming a span of vision from the camera sensor
 and only publishing the detected position if we could realistically have expected the robot to have seen the blind robot.
 
-Mocking the interpretation of the bounding box is done by publishing the exact blind robot location as soon as the computer vision model did detect it.
-
 Mocking the yaw is done by passing through the known yaw, instead of the computed yaw.
 
 Whether any steps of the pipeline are mocked during execution can be toggled by setting
 and combination of the following environment variables to true
 
-> tmb_with_camera_detection   
-> tmb_with_bounding_box_interpretation  
-> tmb_with_computed_yaw
+
+> tmb_with_computed_yaw  
+> tmb_with_computer_vision *
 
 by isolating each step, and having the expected value available, is is thus able
 to independently test each step, and also to compare the accuracy of each step.
+
+`*`note: although each step of the tmb_with_computer_vision pipeline was tested in isolated, the project team did not have hardware capable of running the full vision pipeline, so the option to run the full vision pipeline cannot be verified and is therefore stashed on a separate branch.
 
 
 #### Bounding Box Interpreter
@@ -136,7 +179,7 @@ This node makes sense of the information received from bounding boxes.
   The distance of the object is thus predicted from taking the scans which relate
   to the bounding box.
 
-#### Target Distance Detector
+#### Object Detector
 
 As an interface
 
@@ -163,7 +206,7 @@ As an estimator
   location of the spotted target.Using this position estimate, as well as velocity input, to determine bearing.
 
 
-#### Pose Resolver
+#### Pose Estimator
 This node acts as in interface for the following and guiding routines.
 Notably, while some robots can see and we have good information,
 others, such as the blind robots, have no sensors and we have to
@@ -193,33 +236,94 @@ Application:
 
 ---
 ### SLAM
-For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping package. Configuration files are in the config folder in the @@ package. Gmapping was chosen over the slam-toolbox online async algorithm after evaluating both algorithms in testing. Even after including more cluttering to the maps, the toolbox still had trouble providing twist free maps and it was also getting lost during loop closures. Gmapping has the distinct advantage that our map merge algorithm works best with maps with fixed sizes which are provided by gmapping. With map merging we are able to compute an overall map which gets explored by both robots where we can locate the blind robot in.
+For Simultaneous Localization and Mapping (SLAM) we use the standard gmapping package. Configuration files are in the config folder in the tmb_communication package. Gmapping was chosen over the slam-toolbox online async algorithm after evaluating both algorithms in testing. Even after including more cluttering to the maps, the toolbox still had trouble providing twist free maps and it was also getting lost during loop closures. Gmapping has the distinct advantage that our map merge algorithm works best with maps with fixed sizes which are provided by gmapping. With map merging we are able to compute an overall map which gets explored by both robots where we can locate the blind robot in.
+
+<table style="margin-left: auto; margin-right: auto; table-layout: fixed; width: 100%" class="center">
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/topleft.gif" width='400'></td>
+    <td style="width: 50%;"> <img src="Demo/topright.gif" width='400'></td>
+  </tr>
+  <tr>
+    <td style="width: 50%;"> <img src="Demo/bottomleft.gif" width='400'></td>
+  </tr>
+</table>
+
 
 ### Path Planning
-Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles we use the local costmap.
+Path planning works in two different phases. First we explore the environment by finding unknown space and creating frontiers, this is done by the explore-lite package. We then publish a goal while trying to explore the biggest frontiers. The path is computed by the move_base package by computing a global costmap on the robot maps and then utilizing the laser sensors to perceive the immediate environment and adjust to dynamic obstacles through the local costmap.
 
 After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
 
 ### Guiding routine
-@@
+Once the problem statement is solved (i.e the mapping robots found both the goal position and the blind robot and a path exists between them) the problem switches from the mapping and exploration phase to the guiding phase, which is implemented via the guiding routine found in the **tmb_follow** package. 
+
+The Guiding routine receives the blind robot's pose estimated using the **pose_resolver** node from the peception module, together with the estimated poses of the guiding robots. The routine utilizes **TF** to calculate the control signals to obtain the required velocity profiles for the robots to move in a single file-like chain to the goal getting the blind robot to the required position. The routine also uses several services for action distinction and ensuring a collision free interaction while proceeding to the goal.
+
+![Guiding routine](Demo/bottomright.gif)
 
 ## SLAM
-We use gmapping with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration.
+We use gmapping (http://wiki.ros.org/gmapping) with a largely base setup. We changed the parameters so the map gets updated at a rate of 1Hz. Space over 5 meters away gets classified as unknown space which allows to compute frontiers in exploration. Configuration is specified in the tmb_communication package under config.
 
 ## map_merge
-We use the multirobot_map_merge package provided by @@. This allows us to merge maps where the robot start positions are known. In theory the algorithm is also able to compute maps without knowing the start positions of the robot. This did not work in practice but we could overlay with known starting positions anyway. For known start positions the maps get overlayed. This means that deviations in SLAM lead to large deviations in the computed merged map. So a good SLAM is crucial for this to work properly.
+We use the multirobot_map_merge package provided by (http://wiki.ros.org/multirobot_map_merge). This allows us to merge maps where the robot start positions are known. In theory the algorithm is also able to compute maps without knowing the start positions of the robot. This did not work in practice but we could overlay with known starting positions anyway. For known start positions the maps get overlayed. This means that deviations in SLAM lead to large deviations in the computed merged map. So a good SLAM is crucial for this to work properly.
 
-The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by computing the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that . Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach.
+## exploration
+We use the explore_lite package provided by http://wiki.ros.org/explore_lite. This is developed by the same developer as the multirobot_map_merge package we explained previously. The only adjustments to the algorithm are a change in topics and increasing the timeout period so frontiers get only classified as unreachable after a longer period of time. The algorithm tracks unknown space in the provided map to compute frontiers. Then by finding the biggest frontier, a goal is published on the specified topic and then we use move_base to travel to that frontier. Map updates lead to new frontiers, which will then impact the computed goal so the biggest frontiers get explored first in a greedy approach. Drawbacks of this approach can be found when looking at time needed to explore a complete space, since only the biggest frontiers get explored, newly found frontiers in the vicinity of the robot get explored at a later time.
 
 ## move_base
+[move_base](200~http://wiki.ros.org/move_base) ROS Node is a major component of the [Navigation Stack](http://wiki.ros.org/navigation). 
 
+The move_base package provides an implementation of an action (from action_lib) that, given a goal in the world, will attempt to reach it with a mobile base. The **move_base** node links together a **global and local planner** to accomplish its global navigation task. It supports any global planner adhering to the BaseGlobalPlanner interface specified in the nav_core package and any local planner adhering to the BaseLocalPlanner interface specified in the same package. The move_base node also maintains **two costmaps**, one for the global planner, and one for a local planner
 ## position listener
 
 ## following routine
+The routine consists of **two nodes**, the broadcaster plays the role of reading the position estimates of the robots including the blind_robot [via odom or pose_resolver] and re-broadcasts them as tf frames relative to the Global Map Topic: /map
+The launch file tmb_follow.launch assigns the frames for all the robots in the simulation, visit to adjust accordingly. The broadcaste subscribes to the respective robots namespace /odom topic and message type Odometry. The second node responsible for the grunt of the work in the follow
+subroutine. The node listens to the transforms broadcasted by its  sister node and uses the data, when the conditions in the exploration phase are met, to guide the blind_robot to the goal position.
 
+The node utilizes THREE Trigger services to give the individual robots  their roles in the follow routine, the transform listener is used afterwards to calculate and publish the required velocity profiles. The services provide the required chain of events and collision avoidance in case the robots follow each other too closely.
 ## robot_state_publisher
+This package allows you to publish the state of a robot to tf2. Once the state gets published, it is available to all components in the system that also use tf2. The package takes the joint angles of the robot as input and publishes the 3D poses of the robot links, using a kinematic tree model of the robot. Since in ROS noetic tf is deprecated in favor of tf2, the concept of a multi robots system using tf_prifix was not possible. Tf_prefix is designed for operating multiple similar robots in the same environment. The tf_prefix parameter allows two robots to have base_link frames, for they will become /robot1/base_link and /robot2/base_link if all nodes for robot1 are run in robot1 as their tf_prefix parameter. Therefore, we had to manually modify **robot_state_publisher** package to be able to run multiple robots in our simulation.
 
 # API
 
+**Bounding box interpreter**
+
+    /tmb_perception/bounding_box_interpretation
+
+    Bounding_Box_Interpretation
+    string detected_by
+    string object_detected
+    float32 distance
+    float32 camera_center_position
+
+**Pose Estimator**
+
+    /{robot_name}/tmb_computed_pose
+
+    Computed_Pose
+    float32 x
+    float32 y
+    float32 yaw
+
+**Object Detector**
+
+    /tmb_perception/object_sighted
+
+    Object_Sighted
+    string detected_by
+    string object_detected
+    string object_to_the_left_or_right
+    float32 distance
+    float32 incidence
+    geometry_msgs/Point object_position_estimate
+
+
 =======
 # Possible further development
+
+- Multi robot exploration algorithm to explore the map in a more distributed fashion
+- Update merged map directly after robots localize themselves in it
+- Introduce possibility to start from unknown positions
+- Improve durability of system
+- Introduce automatic error handling for more sustainable performance in long scenarios

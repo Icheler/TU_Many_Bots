@@ -1,0 +1,16 @@
+<launch>
+
+
+  <node name="robot2_pose_broadcaster" pkg="tmb_follow" type="tmb_follow_pose_broadcaster.py" respawn="false" output="screen" >
+    <param name="robot" type="string" value="robot2" />
+  </node>
+  <node name="robotblind_pose_broadcaster" pkg="tmb_follow" type="tmb_follow_pose_broadcaster.py" respawn="false" output="screen" >
+    <param name="robot" type="string" value="robot_blind" />
+  </node>
+  <node name="robot1_pose_broadcaster" pkg="tmb_follow" type="tmb_follow_pose_broadcaster.py" respawn="false" output="screen" >
+    <param name="robot" type="string" value="robot1" />
+  </node>
+  <node name="tmb_guiding_routine" pkg="tmb_follow" type="tmb_guiding_routine.py" respawn="false" output="screen" >
+  </node>
+
+</launch>
