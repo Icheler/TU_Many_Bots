@@ -7,7 +7,7 @@ import geometry_msgs.msg
 from std_srvs.srv import *
 
 '''
-RTO_LISTENER NODE
+tmb_guiding_routine Node
 
 This node is responsible for the grunt of the work in the follow
 subroutine. The node listens to the transforms broadcasted by its 
@@ -38,8 +38,8 @@ SERVICES :
 
 IMPORTANT VARS :
 
-- active_ : Global variable for deciding which robot is "active" as the guiding robot. [0 --> NONE , 1 --> Robot1 , 2 --> Robot2]
-- corrective_ : Global variable for signalling the corrective robot to follow the blind robot [0 --> OFF , 1 --> ON]
+- leading_robot_ : Global variable for deciding which robot is "active" as the guiding robot. [0 --> NONE , 1 --> Robot1 , 2 --> Robot2]
+- corrective_robot_ : Global variable for signalling the corrective robot to follow the blind robot [0 --> OFF , 1 --> ON]
 - safe_blind_ : Boolean indicating its safe for the blind robot to move
 - safe_corrective_ : Boolean indicating its safe for the corrective robot to move
 '''
@@ -49,8 +49,8 @@ def trigger_response1(request):
     '''
     Callback for follow_robot1_service
     '''
-    global active_
-    active_ = 1
+    global leading_robot_
+    leading_robot_ = 1
     return TriggerResponse(
         success=True,
         message="Following robot 1"
@@ -61,8 +61,8 @@ def trigger_response2(request):
     '''
     Callback for follow_robot2_service
     '''
-    global active_
-    active_ = 2
+    global leading_robot_
+    leading_robot_ = 2
     return TriggerResponse(
         success=True,
         message="Following robot 2"
@@ -72,8 +72,8 @@ def trigger_response3(request):
     '''
     Callback for follow_robot_blind_service
     '''
-    global corrective_
-    corrective_ = 1
+    global corrective_robot_
+    corrective_robot_ = 1
     return TriggerResponse(
         success=True,
         message="Following blind robot"
@@ -112,12 +112,12 @@ if __name__ == '__main__':
 
     global active_, corrective_, safe_blind_, safe_corrective_
 
-    active_ = 0
-    corrective_= 0
+    leading_robot_ = 0
+    corrective_robot_= 0
     safe_blind_ = True
     safe_corrective_ = True
 
-    rospy.init_node('rto_tf_listener')
+    rospy.init_node('tmb_guiding_routine')
 
     listener = tf.TransformListener()
     
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
 
         # Blind robot to follow robot 1
-        if active_ == 1: 
+        if leading_robot_ == 1: 
 
             try:
                 '''
@@ -167,7 +167,7 @@ if __name__ == '__main__':
             robot_blind_cmd_vel.publish(msg)
 
         # Blind robot to follow robot 2
-        elif active_ == 2: 
+        elif leading_robot_ == 2: 
 
             try:
                 (trans, rot) = listener.lookupTransform('/robot_blind', '/robot2', rospy.Time())
@@ -189,7 +189,7 @@ if __name__ == '__main__':
 
 
         # Robot 2 follows the blind robot
-        if active_ == 1 and corrective_ == 1: 
+        if leading_robot_ == 1 and corrective_robot_ == 1: 
 
             try:
                 (trans, rot) = listener.lookupTransform('/robot2', '/robot_blind', rospy.Time())
@@ -209,7 +209,7 @@ if __name__ == '__main__':
             robot2_cmd_vel.publish(msg)
 
         # Robot 1 follows the blind robot
-        elif active_ == 2 and corrective_ == 1:
+        elif leading_robot_ == 2 and corrective_robot_ == 1:
 
             try:
                 (trans, rot) = listener.lookupTransform('/robot1', '/robot_blind', rospy.Time())
