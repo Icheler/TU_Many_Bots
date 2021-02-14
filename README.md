@@ -187,7 +187,7 @@ Taking properties from the camera itself, as well as the known robot positions i
 
 #### __Pose Estimator__
 The pose estimator acts as an interface for the following and guiding routines.
-Robots which sufficient sensor input are able to determine their own pose and this is accordingly passed along unchanged. The blind robot instead needs to have its pose estimated.
+Robots with sufficient sensor input are able to determine their own pose and this is accordingly passed along unchanged. The blind robot instead needs to have its pose estimated.
 
 Information used:
   - Global position estimates received from the guiding robot
