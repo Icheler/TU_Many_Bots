@@ -114,8 +114,8 @@ Path planning works in two different phases. First we explore the environment by
 
 After perceiving the goal, the blind robot and being able to compute a path. We switch to the guiding routine which disables the exploration and allows the robots to move to the blind robot and guide it to the goal. The path planning works similarly like before but the goal publishing nodes change.
 
-### Guiding
-@@ Please give a short overview, the detailed explanations were moved
+### Guiding Routine
+The guiding module, which serves the purpose of leading the blind robot to the goal position, actively publishes the estimated poses of all the robots, then through transformations the control outputs (consisting of velocity profiles) are applied to the robots creating a single file chain to navigate the blind robot.
 
 ![Guiding routine](Demo/bottomright.gif)
 
@@ -270,3 +270,5 @@ geometry_msgs/Point: object_position_estimate
 - Introduce possibility to start from unknown positions
 - Improve durability of system
 - Introduce automatic error handling for more sustainable performance in long scenarios
+- Use filtering techniques to improve control inaccuracies in the estimated pose calculations
+- Treat guiding as a path search problem using only the initial pose 
